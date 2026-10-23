@@ -1,5 +1,5 @@
 // Oyna — يعمل دون إنترنت: يجلب أحدث نسخة حين يتوفر الاتصال، ويعود للنسخة المحفوظة حين ينقطع.
-const VERSION='oyna-v5';
+const VERSION='oyna-v7';
 const SHELL=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith('oyna-')&&x!==VERSION).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
