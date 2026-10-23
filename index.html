@@ -1,0 +1,1244 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Oyna</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Oyna">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;-webkit-text-size-adjust:100%}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: native iOS shell — translucent nav bar + large titles, inset grouped lists, bottom tab bar; game rounds as full-screen modals with a bottom result sheet. RTL. */
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --fill:#E9E9EF; --ink:#111114; --muted:#6C6C73; --sep:#D8D8DE;
+  --tint:#1F5BD8; --tint-soft:#E3EBFC; --red:#E0402F; --red-soft:#FCE4E1; --green:#23A25A; --green-soft:#DEF4E6;
+  --orange:#E88A12; --orange-soft:#FCEED8; --teal:#0F9E99; --purple:#7A55D6; --indigo:#4A4FD0;
+  --bar:rgba(247,247,250,.84); --shadow:0 1px 2px rgba(0,0,0,.05);
+  --font:-apple-system,"SF Arabic","SF Pro Text","Segoe UI",Tahoma,system-ui,sans-serif;
+  --round:ui-rounded,"SF Pro Rounded",-apple-system,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --card:#1C1C1E; --fill:#2C2C2E; --ink:#F4F4F6; --muted:#9A9AA2; --sep:#38383A;
+  --tint:#5B8CF5; --tint-soft:#14264A; --red:#FF6A5C; --red-soft:#3A1714; --green:#4AD07F; --green-soft:#10301D;
+  --orange:#F5A740; --orange-soft:#3A2A0E; --teal:#38C8C2; --purple:#A88BF3; --indigo:#8288F2;
+  --bar:rgba(20,20,22,.82); --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --card:#1C1C1E; --fill:#2C2C2E; --ink:#F4F4F6; --muted:#9A9AA2; --sep:#38383A;
+  --tint:#5B8CF5; --tint-soft:#14264A; --red:#FF6A5C; --red-soft:#3A1714; --green:#4AD07F; --green-soft:#10301D;
+  --orange:#F5A740; --orange-soft:#3A2A0E; --teal:#38C8C2; --purple:#A88BF3; --indigo:#8288F2;
+  --bar:rgba(20,20,22,.82); --shadow:none; color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;direction:rtl;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tr{direction:ltr;unicode-bidi:isolate;font-family:var(--round);font-weight:600}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--tint);outline-offset:2px}
+.link{appearance:none;border:0;background:none;color:var(--tint);cursor:pointer;padding:0;font-size:17px}
+/* nav + large title */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(18px);backdrop-filter:saturate(180%) blur(18px);border-bottom:.5px solid transparent;transition:border-color .2s}
+.nav.scrolled{border-bottom-color:var(--sep)}
+.nav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:46px}
+.nav .mid{font-weight:600;font-size:17px;opacity:0;transition:opacity .2s;white-space:nowrap}
+.nav.scrolled .mid,.nav.always .mid{opacity:1}
+.nav .end{justify-self:end;display:flex;gap:8px;align-items:center}
+.lt{padding-block:8px 10px}
+.lt h1{font-size:34px;line-height:1.15;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.lt p{margin:2px 0 0;color:var(--muted);font-size:15px}
+.chipstat{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+.chipstat svg{width:18px;height:18px}
+.stack{display:flex;flex-direction:column;gap:22px;padding-block:4px calc(100px + env(safe-area-inset-bottom,0px))}
+.gtitle{font-size:13px;font-weight:400;color:var(--muted);margin:0 0 6px;padding-inline:16px;display:flex;justify-content:space-between;gap:8px}
+.gfoot{font-size:13px;color:var(--muted);margin:6px 16px 0;line-height:1.6}
+.group{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.cell{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:50px;position:relative;cursor:pointer;width:100%;text-align:start;background:none;border:0}
+.cell+.cell::before{content:"";position:absolute;top:0;inset-inline-end:0;inset-inline-start:58px;border-top:.5px solid var(--sep)}
+.cell.plain+.cell::before,.cell+.cell.plain::before{inset-inline-start:16px}
+.cell:active{background:var(--fill)}
+.cell[disabled]{opacity:.45;cursor:default}
+.cell .body{flex:1;min-width:0}
+.cell .t{font-size:17px;line-height:1.3}
+.cell .s{font-size:13.5px;color:var(--muted);line-height:1.4}
+.cell .v{color:var(--muted);font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cell .badge{background:var(--red);color:#fff;border-radius:99px;font-size:13px;font-weight:600;padding:1px 8px;font-variant-numeric:tabular-nums}
+.chev{color:var(--muted);opacity:.45;flex:none;width:8px;height:13px}
+.ico{flex:none;width:30px;height:30px;border-radius:7px;display:grid;place-items:center;color:#fff;font-family:var(--round);font-weight:700;font-size:13px;direction:ltr;letter-spacing:-.02em}
+.ico svg{width:18px;height:18px}
+.i-blue{background:var(--tint)} .i-teal{background:var(--teal)} .i-orange{background:var(--orange)} .i-red{background:var(--red)} .i-green{background:var(--green)} .i-purple{background:var(--purple)} .i-indigo{background:var(--indigo)}
+/* widgets */
+.widget{background:var(--card);border-radius:16px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;box-shadow:var(--shadow)}
+.widget h2{margin:0;font-size:17px;font-weight:600}
+.widget p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.ring{width:72px;height:72px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--round);font-size:18px;font-variant-numeric:tabular-nums}
+.week{display:flex;gap:5px;align-items:flex-end;height:28px;margin-top:8px;direction:ltr}
+.week i{flex:1;border-radius:4px 4px 2px 2px;background:var(--fill);min-height:4px}
+.week i.on{background:var(--teal)} .week i.now{background:var(--tint)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mini{background:var(--card);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.mini b{display:block;font-family:var(--round);font-size:24px;font-variant-numeric:tabular-nums;line-height:1.2}
+.mini span{font-size:12.5px;color:var(--muted)}
+.hero{display:flex;align-items:center;gap:14px;border:0;width:100%;text-align:start;background:var(--tint);color:#fff;border-radius:16px;padding:14px 16px;cursor:pointer}
+.hero:active{opacity:.85}
+.hero .big{font-size:19px;font-weight:700;line-height:1.3}
+.hero .sm{opacity:.9;font-size:14px}
+.hero .ic{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center;flex:none}
+.hero .ic svg{width:24px;height:24px}
+.bar{height:5px;background:var(--fill);border-radius:3px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:3px}
+.segc{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px}
+.segc button{border:0;background:none;border-radius:7px;padding:5px 12px;font-size:14px;font-weight:500;cursor:pointer;flex:1;white-space:nowrap}
+.segc button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
+.banner{background:var(--orange-soft);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.6}
+/* tab bar */
+.tabbar{position:fixed;inset:auto 0 0 0;z-index:25;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(18px);backdrop-filter:saturate(180%) blur(18px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar .in{display:grid;grid-template-columns:repeat(4,1fr);max-width:640px;margin:0 auto;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tb{appearance:none;border:0;background:none;font-size:10.5px;font-weight:500;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;cursor:pointer;position:relative}
+.tb svg{width:26px;height:26px}
+.tb[aria-selected="true"]{color:var(--tint)}
+.tb .dot{position:absolute;top:4px;left:calc(50% - 20px);min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;display:grid;place-items:center;padding:0 4px;font-variant-numeric:tabular-nums}
+/* play (full-screen modal) */
+.play{min-height:100dvh;display:flex;flex-direction:column}
+.ptop{display:flex;align-items:center;gap:12px;height:50px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.prog{flex:1;height:6px;background:var(--fill);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .3s}
+.combo{font-family:var(--round);font-weight:700;color:var(--orange);min-width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.pbody{flex:1;display:flex;flex-direction:column;gap:16px;padding-block:10px 190px}
+.qlabel{font-size:22px;font-weight:700;line-height:1.35;margin:0;text-wrap:balance}
+.qlabel small{display:block;font-weight:400;font-size:15px;color:var(--muted)}
+.prompt{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:16px 18px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.prompt .tr{font-size:30px;line-height:1.3}
+.prompt .sent{font-size:22px;line-height:1.55;font-family:var(--round);font-weight:600;direction:ltr;text-align:left;flex:1;min-width:0;overflow-wrap:anywhere}
+.prompt .ar{font-size:21px;font-weight:600;flex:1}
+.speak{border:0;width:44px;height:44px;border-radius:50%;background:var(--tint-soft);color:var(--tint);display:grid;place-items:center;cursor:pointer;flex:none}
+.speak svg{width:22px;height:22px}
+.speak.big{width:104px;height:104px;margin:10px auto;background:var(--tint);color:#fff}
+.speak.big svg{width:46px;height:46px}
+.blank{display:inline-block;min-width:80px;border-bottom:3px solid var(--tint);color:var(--tint);text-align:center;padding:0 6px}
+.opts{display:grid;gap:10px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opt{border:0;background:var(--card);border-radius:14px;padding:14px 16px;font-size:18px;font-weight:500;cursor:pointer;text-align:center;box-shadow:var(--shadow),inset 0 0 0 1px var(--sep);min-height:56px;overflow-wrap:anywhere;transition:transform .08s}
+.opt.tr{font-size:21px}
+.opt:active{transform:scale(.97)}
+.opt.right{background:var(--green-soft);color:var(--green);box-shadow:inset 0 0 0 2px var(--green)}
+.opt.wrong{background:var(--red-soft);color:var(--red);box-shadow:inset 0 0 0 2px var(--red)}
+.opt[disabled]{cursor:default}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;direction:ltr}
+.tile{border:0;background:var(--card);border-radius:10px;padding:9px 13px;font-family:var(--round);font-weight:600;font-size:19px;cursor:pointer;box-shadow:var(--shadow),inset 0 0 0 1px var(--sep)}
+.tile:active{transform:scale(.96)}
+.tile.used{visibility:hidden}
+.tile.root{color:var(--tint);box-shadow:inset 0 0 0 1.5px var(--tint)}
+.answer{min-height:64px;border-bottom:1px solid var(--sep);display:flex;flex-wrap:wrap;gap:8px;align-items:center;direction:ltr;padding:8px 0}
+.answer.word{justify-content:center;gap:0;border:1.5px dashed var(--sep);border-radius:14px;padding:10px;font-size:28px;min-height:70px}
+.answer.word .tile{border-radius:0;box-shadow:inset 0 0 0 1px var(--sep);font-size:24px;padding:6px 7px}
+.answer.word .tile:first-child{border-radius:10px 0 0 10px}
+.answer.word .tile:last-child{border-radius:0 10px 10px 0}
+.answer.word .tile:only-child{border-radius:10px}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.match .col{display:flex;flex-direction:column;gap:10px}
+.mi{border:0;background:var(--card);border-radius:14px;padding:12px 8px;font-weight:500;font-size:17px;cursor:pointer;box-shadow:var(--shadow),inset 0 0 0 1px var(--sep);min-height:56px;overflow-wrap:anywhere}
+.mi.tr{font-size:19px}
+.mi.sel{background:var(--tint-soft);color:var(--tint);box-shadow:inset 0 0 0 2px var(--tint)}
+.mi.done{visibility:hidden}
+.mi.bad{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(6px)}50%{transform:translateX(-6px)}75%{transform:translateX(3px)}}
+.card{background:var(--card);border-radius:22px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+.card .tr{font-size:42px;line-height:1.2}
+.card .ar{font-size:24px;font-weight:600}
+.note{background:var(--orange-soft);border-radius:12px;padding:10px 14px;font-size:15px;line-height:1.65;text-align:start;width:100%}
+.note b{color:var(--orange)}
+.dots{display:flex;gap:6px;justify-content:center}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--sep)} .dots i.on{background:var(--tint)}
+.fbar{position:fixed;inset:auto 0 0;z-index:20;background:var(--bar);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px)}
+.fbar.ok,.fbar.bad{border-top:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.1);animation:up .25s cubic-bezier(.2,.8,.2,1)}
+.fbar.ok{background:var(--green-soft)} .fbar.bad{background:var(--red-soft)}
+@keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+.fbar .wrap{padding-block:14px 14px;display:flex;flex-direction:column;gap:10px}
+.fbar h3{margin:0;font-size:21px;line-height:1.3;font-weight:700}
+.fbar.ok h3{color:var(--green)} .fbar.bad h3{color:var(--red)}
+.fbar p{margin:0;font-size:15px;line-height:1.65}
+.fbar .row{display:flex;gap:10px;align-items:center}
+.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:600;font-size:17px;cursor:pointer;background:var(--tint);color:#fff;width:100%;min-height:50px}
+.btn:active{opacity:.85}
+.btn.okb{background:var(--green)} .btn.badb{background:var(--red)}
+.btn.ghost{background:var(--card);color:var(--tint);box-shadow:var(--shadow)}
+.btn[disabled]{opacity:.4;cursor:default}
+.why{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-weight:600;padding:0}
+.end{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding-block:56px 40px}
+.end h2{font-size:34px;margin:0;font-weight:700}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.s3{border-radius:14px;padding:10px 6px;background:var(--card);box-shadow:var(--shadow)}
+.s3 b{display:block;font-family:var(--round);font-size:26px;font-variant-numeric:tabular-nums}
+.s3 span{font-size:13px;color:var(--muted)}
+/* chat (iMessage style) */
+.chat{display:flex;flex-direction:column;gap:8px;padding-block:6px 170px}
+.bub{max-width:82%;border-radius:19px;padding:9px 14px;font-size:17px;line-height:1.5}
+.bub.me{align-self:flex-end;background:var(--tint);color:#fff;border-end-end-radius:6px}
+.bub.them{align-self:flex-start;background:var(--card);border-end-start-radius:6px;display:flex;flex-direction:column;gap:5px;box-shadow:var(--shadow)}
+.bub.them .trl{font-family:var(--round);font-weight:600;font-size:18px;direction:ltr;text-align:left;line-height:1.45}
+.bub.them .arl{color:var(--muted);font-size:14.5px}
+.bub .acts{display:flex;gap:6px}
+.bub .acts button{border:0;background:var(--fill);border-radius:99px;padding:3px 10px;font-size:13px;cursor:pointer;color:var(--tint);font-weight:500}
+.fix{align-self:flex-end;max-width:82%;background:var(--orange-soft);border-radius:14px;padding:8px 12px;font-size:14px;line-height:1.6}
+.fix .tr{font-size:15.5px}
+.goal{display:flex;gap:8px;align-items:center;background:var(--card);border-radius:12px;padding:9px 12px;font-size:14px;box-shadow:var(--shadow)}
+.goal.done{background:var(--green-soft);color:var(--green);font-weight:600}
+.typing{align-self:flex-start;background:var(--card);border-radius:19px;padding:10px 14px;display:flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.composer{position:fixed;inset:auto 0 0;background:var(--bar);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px);z-index:20}
+.composer .wrap{display:flex;flex-direction:column;gap:8px;padding-block:8px}
+.composer .row{display:flex;gap:6px;align-items:flex-end}
+.composer textarea{flex:1;min-width:0;border:.5px solid var(--sep);border-radius:20px;padding:8px 14px;font:inherit;font-size:16px;background:var(--card);color:var(--ink);resize:none;max-height:120px;outline:none}
+.composer .send{width:36px;height:36px;border-radius:50%;border:0;background:var(--tint);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;margin-bottom:2px}
+.composer .send[disabled]{opacity:.35}
+.composer .send svg{width:20px;height:20px}
+.hintrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.hintrow::-webkit-scrollbar{display:none}
+.hintrow button{border:.5px solid var(--sep);background:var(--card);border-radius:99px;padding:5px 12px;font-size:14px;white-space:nowrap;cursor:pointer;color:var(--tint)}
+.toast{position:fixed;top:calc(56px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:99px;font-size:14px;font-weight:500;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* chat screen: fixed to the visible screen, only the messages scroll */
+html.locked,html.locked body{overflow:hidden;height:100%;overscroll-behavior:none}
+.cv{position:fixed;left:0;right:0;top:0;height:100dvh;display:flex;flex-direction:column;background:var(--bg);z-index:15;padding-top:env(safe-area-inset-top,0px)}
+.cnav{flex:none;background:var(--bar);border-bottom:.5px solid var(--sep)}
+.cnav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px}
+.cnav .mid{font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+.cnav .end{justify-self:end}
+.ctop{flex:none;padding-block:8px 6px}
+.ctop .segc button{padding:5px 4px;font-size:13px}
+.cs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;position:relative}
+.cs .chat{padding-block:6px 14px}
+.ccomp{flex:none;background:var(--bar);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px)}
+.cv.kb .ccomp{padding-bottom:0}
+.ccomp .wrap{display:flex;flex-direction:column;gap:7px;padding-block:7px}
+.ccomp .row{display:flex;gap:6px;align-items:flex-end}
+.ccomp textarea{flex:1;min-width:0;border:.5px solid var(--sep);border-radius:20px;padding:8px 14px;font:inherit;font-size:16px;background:var(--card);color:var(--ink);resize:none;max-height:120px;outline:none;line-height:1.4}
+.ccomp .send{width:36px;height:36px;border-radius:50%;border:0;background:var(--tint);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;margin-bottom:1px}
+.ccomp .send[disabled]{opacity:.35}
+.ccomp .send svg{width:20px;height:20px}
+.hintrow button{display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1.3;text-align:start}
+.hintrow button small{color:var(--muted);font-size:11.5px;direction:rtl}
+.hintrow.wrapit{flex-wrap:wrap;justify-content:center;overflow:visible}
+.bub.them .arl{color:var(--muted);font-size:14.5px;line-height:1.6;border-top:.5px solid var(--sep);padding-top:5px}
+.bub.them .arl.solo{color:var(--ink);font-size:16px;border:0;padding:0}
+.intro{text-align:center;padding:18px 6px 8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.intro .cup{font-size:42px;line-height:1}
+.intro h2{margin:0;font-size:22px}
+.intro p{margin:0;color:var(--muted);line-height:1.7;font-size:15px}
+.fld{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16px;color:var(--ink);outline:none;direction:ltr;text-align:right}
+.ta{width:100%;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);outline:none;resize:vertical;direction:ltr}
+
+/* Yarışma (Kahoot-style): its own fixed purple game world, same in light and dark */
+.kh{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:#46178F;color:#fff;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);overflow:hidden;
+  background-image:radial-gradient(circle at 12% 18%,rgba(255,255,255,.07) 0 60px,transparent 61px),radial-gradient(circle at 88% 72%,rgba(255,255,255,.06) 0 90px,transparent 91px);transition:background-color .25s;color-scheme:dark}
+.kh.ok{background-color:#1F7A0A} .kh.bad{background-color:#B3172C}
+.kh .tr{font-family:var(--round)}
+.khtop{flex:none;display:flex;align-items:center;gap:10px;height:52px;padding-inline:max(14px,env(safe-area-inset-left,0px)) max(14px,env(safe-area-inset-right,0px))}
+.khx{border:0;background:rgba(255,255,255,.14);color:#fff;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.khx svg{width:18px;height:18px}
+.kgrow{flex:1}
+.kq-n{direction:ltr;font-weight:700;font-variant-numeric:tabular-nums;background:rgba(0,0,0,.2);border-radius:99px;padding:3px 12px;font-size:14px}
+.kpill{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:99px;padding:5px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.klobby{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:18px;padding:16px max(18px,env(safe-area-inset-right,0px)) 10px max(18px,env(safe-area-inset-left,0px));text-align:center}
+.klogo{font-family:var(--round);font-weight:900;font-size:56px;line-height:1;letter-spacing:-.02em;direction:ltr;text-shadow:0 4px 0 rgba(0,0,0,.25);margin-top:10px}
+.ksub{margin:0;opacity:.9;line-height:1.7;max-width:34ch}
+.kchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.kchip{border:2px solid rgba(255,255,255,.5);background:none;color:#fff;border-radius:99px;padding:7px 15px;font-weight:600;cursor:pointer}
+.kchip[aria-pressed="true"]{background:#fff;color:#46178F;border-color:#fff}
+.kplayers{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.kpl{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;font-weight:600}
+.kav{display:inline-grid;place-items:center;border-radius:50%;font-weight:800;flex:none;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.kfoot{flex:none;padding:10px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px))}
+.kfoot.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kgo{width:100%;border:0;border-radius:10px;background:#fff;color:#46178F;font-weight:800;font-size:19px;padding:15px;cursor:pointer;box-shadow:inset 0 -5px 0 rgba(0,0,0,.15)}
+.kgo.ghost{background:rgba(255,255,255,.16);color:#fff}
+.kgo:active,.kt:active{transform:translateY(2px)}
+.kcount{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.kspin{width:150px;height:150px;background:#fff;color:#46178F;display:grid;place-items:center;transform:rotate(45deg);border-radius:18px;animation:kpop .8s ease}
+.kspin span{transform:rotate(-45deg);font-family:var(--round);font-weight:900;font-size:80px;line-height:1}
+.kcount p{font-size:20px;font-weight:700;margin:0}
+@keyframes kpop{0%{transform:rotate(45deg) scale(.4)}60%{transform:rotate(45deg) scale(1.08)}100%{transform:rotate(45deg) scale(1)}}
+.kq{flex:none;background:#fff;color:#1b1b1b;border-radius:8px;margin:0 max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px));padding:12px 14px;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.kq .ttl{font-size:13.5px;color:#666;font-weight:600}
+.kq .big{font-size:30px;font-weight:800;line-height:1.3;margin-top:2px;overflow-wrap:anywhere}
+.kq .big.sm{font-size:21px;line-height:1.5}
+.kq .sub{font-size:15px;color:#555;margin-top:4px}
+.kq .sub.tfsub{font-size:24px;color:#1b1b1b;font-weight:800}
+.kread{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.kq.bigq{padding:26px 16px}
+.kq.bigq .big{font-size:38px}
+.kq.bigq .big.sm{font-size:24px}
+.kreadgo{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 24px}
+.kreadgo .kgo{max-width:360px}
+.kreadgo p{margin:0;font-size:14px;opacity:.85}
+.kreadbar{height:8px;margin:0 30px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden}
+.kreadbar i{display:block;height:100%;background:#fff;animation:kdrain 1.7s linear forwards}
+@keyframes kdrain{from{width:100%}to{width:0}}
+.kmid{flex:1;min-height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.ktimer{width:66px;height:66px;border-radius:50%;background:#864CBF;display:grid;place-items:center;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.ktimer b{font-family:var(--round);font-size:28px;font-variant-numeric:tabular-nums}
+.kans{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.kans b{font-family:var(--round);font-size:28px;font-variant-numeric:tabular-nums}
+.kans span{font-size:13px;opacity:.85}
+.ktbar{flex:none;height:5px;margin:0 14px 8px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.ktbar i{display:block;height:100%;background:#fff;transition:width .1s linear}
+.ktiles{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 max(8px,env(safe-area-inset-right,0px)) 10px max(8px,env(safe-area-inset-left,0px));height:min(46dvh,360px)}
+.ktiles.tf{grid-template-columns:1fr 1fr}
+.ktiles.n2{grid-template-rows:1fr}
+.kt{border:0;border-radius:6px;color:#fff;font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;box-shadow:inset 0 -6px 0 rgba(0,0,0,.18);text-align:start;min-width:0;overflow-wrap:anywhere;line-height:1.35}
+.kt span{min-width:0}
+.kt.tr span,.kt .tr{font-size:20px}
+.kt svg{width:30px;height:30px;flex:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.2))}
+.ktiles.tf .kt{flex-direction:column;justify-content:center;font-size:26px;text-align:center}
+.ktiles.tf .kt svg{width:56px;height:56px}
+.k0{background:#E21B3C} .k1{background:#1368CE} .k2{background:#D89E00} .k3{background:#26890C}
+.krev{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:12px;padding:6px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));text-align:center}
+.kverdict{font-family:var(--round);font-weight:900;font-size:44px;line-height:1.1;direction:ltr;text-shadow:0 3px 0 rgba(0,0,0,.2);margin-top:6px}
+.kverdict-ar{font-weight:600;opacity:.9;margin-top:-6px}
+.kplus{direction:ltr;background:rgba(0,0,0,.25);border-radius:99px;padding:6px 18px;font-family:var(--round);font-weight:800;font-size:24px;font-variant-numeric:tabular-nums;animation:kpop2 .4s ease}
+@keyframes kpop2{0%{transform:scale(.5)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.kstreak{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#FFD34D}
+.kstreak svg{width:20px;height:20px}
+.kanswer{width:100%;background:rgba(255,255,255,.14);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.kanswer .lbl{font-size:13px;opacity:.8}
+.kanswer .val{font-size:22px;font-weight:800}
+.kanswer .full{font-size:16px;opacity:.95;direction:ltr}
+.kanswer .why{font-size:14px;line-height:1.65;opacity:.95;margin-top:4px}
+.kanswer .why b{color:#FFD34D}
+.krank{margin:0;font-size:15px}
+.klb{width:100%;display:flex;flex-direction:column;gap:6px}
+.kr{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.18);border-radius:8px;padding:6px 10px;font-weight:600}
+.kr.me{background:#fff;color:#46178F}
+.kn{width:18px;font-variant-numeric:tabular-nums;opacity:.8}
+.knm{width:62px;text-align:start;font-size:14px}
+.kbarw{flex:1;height:8px;background:rgba(255,255,255,.18);border-radius:4px;overflow:hidden;direction:ltr}
+.kr.me .kbarw{background:rgba(70,23,143,.15)}
+.kbarw i{display:block;height:100%;background:currentColor;border-radius:4px;transition:width .6s ease}
+.ksc{width:48px;text-align:end;font-variant-numeric:tabular-nums;font-size:14px}
+.kpod{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-items:end;width:100%;margin-top:6px}
+.kcol{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:14px;min-width:0}
+.kcol b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kstep{width:100%;background:rgba(255,255,255,.2);border-radius:8px 8px 0 0;display:grid;place-items:center;font-family:var(--round);font-weight:900;font-size:30px;margin-top:4px}
+.kcol.me .kstep{background:#fff;color:#46178F}
+.kstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.kstats div{background:rgba(0,0,0,.2);border-radius:10px;padding:8px 4px;display:flex;flex-direction:column}
+.kstats b{direction:ltr;font-family:var(--round);font-size:22px}
+.kstats span{font-size:12.5px;opacity:.85}
+</style>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== data ===================== */
+const CATS={greet:'تحيات وأساسيات',cafe:'المقهى والطعام',transport:'المواصلات',market:'السوق والشراء',home:'البيت والسكن',work:'العمل',time:'الوقت والأرقام',verbs:'أفعال يومية',people:'الناس والعائلة',city:'المدينة'};
+// tr|ar|category|bridge note (optional)
+const VOCAB_RAW=`merhaba|مرحبا|greet|من «مرحبا» العربية
+selam|سلام|greet|من «سلام»
+günaydın|صباح الخير|greet
+iyi akşamlar|مساء الخير|greet
+iyi geceler|تصبح على خير|greet
+teşekkür ederim|شكرًا|greet|من «تشكُّر»
+sağ ol|شكرًا (ودّية)|greet
+lütfen|من فضلك|greet
+evet|نعم|greet
+hayır|لا|greet|انتبه: ليست «خير»، بل تعني «لا»
+tamam|حسنًا|greet|من «تمام»
+rica ederim|عفوًا (ردًّا على الشكر)|greet|من «رجاء»
+özür dilerim|أعتذر|greet
+pardon|عفوًا، لو سمحت|greet
+kolay gelsin|يعطيك العافية|greet
+geçmiş olsun|سلامتك|greet
+hoş geldiniz|أهلًا وسهلًا|greet
+görüşürüz|نلتقي لاحقًا|greet
+nasılsınız|كيف حالكم؟|greet
+iyiyim|أنا بخير|greet
+maalesef|للأسف|greet|من «مع الأسف»
+afiyet olsun|بالعافية (على الطعام)|greet|من «عافية»
+çay|شاي|cafe|من «شاي»
+kahve|قهوة|cafe|من «قهوة»
+su|ماء|cafe
+ekmek|خبز|cafe
+peynir|جبن|cafe
+zeytin|زيتون|cafe|من «زيتون»
+yumurta|بيض|cafe
+kahvaltı|فطور الصباح|cafe
+hesap|الحساب (الفاتورة)|cafe|من «حساب»
+şeker|سكر|cafe|من «سكّر»
+süt|حليب|cafe
+tuz|ملح|cafe
+et|لحم|cafe
+tavuk|دجاج|cafe
+balık|سمك|cafe
+çorba|شوربة|cafe|من «شوربة»
+garson|نادل|cafe
+acı|حارّ (طعم)|cafe
+tatlı|حلو، حلويات|cafe
+lezzetli|لذيذ|cafe|من «لذّة»
+simit|سميط|cafe
+otobüs|حافلة|transport
+vapur|عبّارة|transport
+taksi|سيارة أجرة|transport
+durak|موقف|transport
+bilet|تذكرة|transport
+istasyon|محطة|transport
+yol|طريق|transport
+sağ|يمين|transport
+sol|يسار|transport
+düz|على طول (مستقيم)|transport
+köprü|جسر|transport
+inmek|ينزل|transport
+binmek|يركب|transport
+uzak|بعيد|transport
+yakın|قريب|transport
+ne kadar|كم (السعر)؟|market
+pahalı|غالٍ|market
+ucuz|رخيص|market
+para|نقود|market
+indirim|تخفيض|market
+çanta|حقيبة|market
+poşet|كيس|market
+nakit|نقدًا|market|من «نقد»
+almak|يشتري، يأخذ|market
+satmak|يبيع|market
+büyük|كبير|market
+küçük|صغير|market
+yeni|جديد|market
+eski|قديم|market
+ev|بيت|home
+oda|غرفة|home
+kira|إيجار|home|من «كراء»
+anahtar|مفتاح|home
+kapı|باب|home
+pencere|نافذة|home
+mutfak|مطبخ|home|من «مطبخ»
+banyo|حمّام|home
+komşu|جار|home
+fatura|فاتورة|home
+temiz|نظيف|home
+kirli|متّسخ|home
+sıcak|ساخن، حار|home
+soğuk|بارد|home
+iş|عمل|work
+ofis|مكتب|work
+toplantı|اجتماع|work
+müdür|مدير|work|من «مدير»
+maaş|راتب|work|من «معاش» لكنها تعني الراتب الشهري
+haber|خبر|work|من «خبر»
+gazete|جريدة|work
+yazmak|يكتب|work
+okumak|يقرأ|work
+çalışmak|يعمل، يدرس|work
+mesaj|رسالة|work
+bilgisayar|حاسوب|work
+fikir|فكرة|work|من «فكر»
+sebep|سبب|work|من «سبب»
+şart|شرط|work|من «شرط»
+bugün|اليوم|time
+yarın|غدًا|time
+dün|أمس|time
+şimdi|الآن|time
+sonra|بعد ذلك|time
+önce|قبل|time
+saat|ساعة|time|من «ساعة»، وتأخذ لواحق أمامية: saatler
+dakika|دقيقة|time|من «دقيقة»
+hafta|أسبوع|time
+ay|شهر؛ قمر|time
+yıl|سنة|time
+sabah|صباح|time|من «صباح»
+akşam|مساء|time
+gece|ليل|time
+vakit|وقت|time|من «وقت»
+bir|واحد|time
+iki|اثنان|time
+üç|ثلاثة|time
+dört|أربعة|time
+beş|خمسة|time
+on|عشرة|time
+yüz|مئة|time
+bin|ألف|time
+gitmek|يذهب|verbs
+gelmek|يأتي|verbs
+yemek|يأكل؛ طعام|verbs
+içmek|يشرب|verbs
+istemek|يريد|verbs
+bilmek|يعرف|verbs
+anlamak|يفهم|verbs
+konuşmak|يتكلم|verbs
+beklemek|ينتظر|verbs
+görmek|يرى|verbs
+vermek|يعطي|verbs
+yapmak|يفعل، يصنع|verbs
+öğrenmek|يتعلّم|verbs
+sevmek|يحب|verbs
+oturmak|يجلس؛ يسكن|verbs
+uyumak|ينام|verbs
+açmak|يفتح|verbs
+kapatmak|يغلق|verbs
+anne|أم|people
+baba|أب|people
+eş|زوج، زوجة|people
+kardeş|أخ، أخت|people
+çocuk|طفل|people
+arkadaş|صديق|people
+aile|عائلة|people|من «عائلة»
+insan|إنسان|people|من «إنسان»
+misafir|ضيف|people|انتبه: من «مسافر» لكنها تعني «ضيف»
+öğretmen|معلّم|people
+öğrenci|طالب|people
+cami|جامع (مسجد)|city|من «جامع»
+çarşı|سوق|city
+eczane|صيدلية|city
+deniz|بحر|city
+sokak|شارع|city|من «زقاق»
+mahalle|حيّ|city|من «محلّة»
+şehir|مدينة|city
+dünya|العالم|city|من «دنيا»
+hava|الطقس؛ الهواء|city|من «هواء»، وتعني الطقس غالبًا
+yağmur|مطر|city
+güneş|شمس|city`;
+const VOCAB=VOCAB_RAW.trim().split('\n').map(l=>{const [tr,ar,cat,note]=l.split('|');return {tr,ar,cat,note:note||''}});
+const W=Object.fromEntries(VOCAB.map(v=>[v.tr,v]));
+
+// Arabic bridges & false friends: tr|ar meaning|same or shift|note
+const BRIDGES_RAW=`hayır|لا|shift|ليست «خير». الأتراك يقولون hayır للرفض
+dikkat|انتباه، احذر|shift|من «دقّة» لكنها تعني الانتباه: Dikkat! = انتبه!
+misafir|ضيف|shift|من «مسافر» لكنها تعني الضيف
+merak|فضول|shift|من «مَراق» لكنها تعني الفضول: Merak ediyorum = أتساءل
+memnun|مسرور، راضٍ|shift|من «ممنون» لكنها تعني مسرور: Memnun oldum = تشرفت
+devam|استمرار|shift|من «دوام» وتعني الاستمرار: devam et = أكمل
+mektup|رسالة (بريدية)|shift|من «مكتوب» وتعني رسالة
+emin|متأكد|shift|من «أمين» لكنها تعني متأكد: Emin misin? = هل أنت متأكد؟
+sohbet|دردشة، حديث|shift|من «صحبة» وتعني الحديث الودّي
+hazır|جاهز|shift|من «حاضر» وتعني جاهز: Hazır mısın? = هل أنت جاهز؟
+galiba|على الأرجح|shift|من «غالبًا» وتعني «ربما، على الأرجح»
+maaş|راتب|shift|من «معاش» وتعني الراتب الشهري لا التقاعد
+hava|الطقس|shift|من «هواء» وتعني الطقس غالبًا: Hava güzel = الجو جميل
+acele|استعجال|shift|من «عجلة»: Acele et = أسرع
+rahat|مرتاح|same|من «راحة»: Rahat ol = خذ راحتك
+kira|إيجار|same|من «كراء»
+kalem|قلم|same|من «قلم»
+kitap|كتاب|same|من «كتاب»
+ders|درس|same|من «درس»
+kelime|كلمة|same|من «كلمة»
+cümle|جملة|same|من «جملة»
+tarih|تاريخ|same|من «تاريخ»، وتعني التاريخ والموعد
+ilan|إعلان|same|من «إعلان»
+hediye|هدية|same|من «هدية»
+sabır|صبر|same|من «صبر»
+kalp|قلب|same|من «قلب»
+akıl|عقل|same|من «عقل»
+hayal|خيال، حلم|same|من «خيال»
+nefes|نَفَس|same|من «نَفَس»
+ömür|عُمر|same|من «عمر» بمعنى مدة الحياة
+kabul|قبول|same|من «قبول»: kabul etmek = يقبل
+fark|فرق|same|من «فرق»
+lazım|لازم|same|من «لازم»
+mümkün|ممكن|same|من «ممكن»
+hayvan|حيوان|same|من «حيوان»
+fakir|فقير|same|من «فقير»
+dünya|العالم|same|من «دنيا»
+insan|إنسان|same|من «إنسان»`;
+const BRIDGES=BRIDGES_RAW.trim().split('\n').map(l=>{const [tr,ar,kind,note]=l.split('|');return {tr,ar,kind,note}});
+
+// sentences: tr|ar
+const SENT_RAW=`Bir çay lütfen.|شايًا واحدًا من فضلك.
+Hesap lütfen.|الحساب من فضلك.
+Bu ne kadar?|كم سعر هذا؟
+Çok pahalı, indirim var mı?|غالٍ جدًا، هل يوجد تخفيض؟
+Metro istasyonu nerede?|أين محطة المترو؟
+Kadıköy'e nasıl giderim?|كيف أذهب إلى قاضي كوي؟
+Bir sonraki durakta ineceğim.|سأنزل في الموقف التالي.
+Türkçe öğreniyorum.|أنا أتعلم التركية.
+Biraz Türkçe konuşuyorum.|أتكلم التركية قليلًا.
+Anlamadım, tekrar eder misiniz?|لم أفهم، هل تعيدون من فضلكم؟
+Daha yavaş konuşur musunuz?|هل تتكلمون أبطأ من فضلكم؟
+Ben Yemenliyim, İstanbul'da yaşıyorum.|أنا يمني، أعيش في إسطنبول.
+Kahvaltıda peynir ve zeytin yiyorum.|آكل الجبن والزيتون في الفطور.
+Kira bu ay arttı.|زاد الإيجار هذا الشهر.
+Ev sahibiyle konuşmam lazım.|عليّ أن أتكلم مع صاحب البيت.
+Toplantı saat üçte başlıyor.|يبدأ الاجتماع الساعة الثالثة.
+Yarın ofiste olacağım.|سأكون في المكتب غدًا.
+Bugün hava çok güzel.|الطقس جميل جدًا اليوم.
+Vapurla Üsküdar'a gidiyoruz.|نذهب إلى أسكدار بالعبّارة.
+Eczane saat kaçta kapanıyor?|متى تغلق الصيدلية؟
+Bir dakika bekler misiniz?|هل تنتظرون دقيقة؟
+Nakit ödeyebilir miyim?|هل يمكنني الدفع نقدًا؟
+Kartla ödemek istiyorum.|أريد أن أدفع بالبطاقة.
+Annem ve eşim evde.|أمي وزوجتي في البيت.
+Akşam yemeğinde balık yedik.|أكلنا السمك على العشاء.
+Bu otobüs Taksim'e gidiyor mu?|هل تذهب هذه الحافلة إلى تقسيم؟
+Sağdan ikinci sokak.|الشارع الثاني من اليمين.
+Çok teşekkür ederim, kolay gelsin.|شكرًا جزيلًا، يعطيك العافية.
+Komşumuz çok iyi bir insan.|جارنا إنسان طيب جدًا.
+Haberleri her sabah okuyorum.|أقرأ الأخبار كل صباح.
+Bu kelimenin anlamı ne?|ما معنى هذه الكلمة؟
+Hafta sonu ne yapıyorsun?|ماذا تفعل في نهاية الأسبوع؟
+Geç kaldım, özür dilerim.|تأخرت، أعتذر.
+Fatura ne zaman gelecek?|متى ستأتي الفاتورة؟
+İnternet çalışmıyor.|الإنترنت لا يعمل.
+Doktora gitmem gerekiyor.|يجب أن أذهب إلى الطبيب.
+Arkadaşlarımla kahve içtik.|شربنا القهوة مع أصدقائي.
+Bu yol çok kalabalık.|هذا الطريق مزدحم جدًا.
+Ne zaman geleceksin?|متى ستأتي؟
+Kitap okumayı seviyorum.|أحب قراءة الكتب.
+Hesabı ben ödeyeceğim.|سأدفع أنا الحساب.
+Kapıyı kapatır mısın?|هل تغلق الباب؟
+Pencereyi açabilir miyim?|هل يمكنني فتح النافذة؟
+Saat kaç?|كم الساعة؟
+Yarın görüşürüz.|نلتقي غدًا.
+Su soğuk mu?|هل الماء بارد؟
+Simit ve çay en güzel kahvaltı.|السميط والشاي أجمل فطور.
+Burada sigara içmek yasak.|التدخين ممنوع هنا.`;
+const SENTS=SENT_RAW.trim().split('\n').map(l=>{const [tr,ar]=l.split('|');return {tr,ar}});
+
+// word builder: parts joined = word
+const BUILD=[
+ {p:['ev','ler','imiz','de'],ar:'في بيوتنا'},{p:['araba','lar','ımız'],ar:'سياراتنا'},{p:['kitap','lar','ım'],ar:'كتبي'},
+ {p:['okul','dan'],ar:'من المدرسة'},{p:['otobüs','te'],ar:'في الحافلة'},{p:['market','ten'],ar:'من البقالة'},
+ {p:['gel','iyor','sun'],ar:'أنت قادم'},{p:['çalış','ıyor','uz'],ar:'نحن نعمل'},{p:['arkadaş','lar','ım','la'],ar:'مع أصدقائي'},
+ {p:['ev','de','yim'],ar:'أنا في البيت'},{p:['yap','a','ma','dı','m'],ar:'لم أستطع أن أفعل'},{p:['konuş','abil','iyor','um'],ar:'أستطيع أن أتكلم'},
+ {p:['öğren','mek'],ar:'أن يتعلّم (التعلّم)'},{p:['görüş','ür','üz'],ar:'نلتقي (إلى اللقاء)'},{p:['ev','iniz','e'],ar:'إلى بيتكم'},
+ {p:['iş','ten'],ar:'من العمل'},{p:['gün','ler'],ar:'أيام'},{p:['köprü','de'],ar:'على الجسر'},{p:['deniz','e'],ar:'إلى البحر'},
+ {p:['çay','ım'],ar:'شايي'},{p:['iç','ti','k'],ar:'شربنا'},{p:['anla','ma','dı','m'],ar:'لم أفهم'},{p:['bil','mi','yor','um'],ar:'لا أعرف'},
+ {p:['kahve','ler'],ar:'القهوات (أنواع القهوة)'}
+];
+const SUFFIX_SETS=[['ler','lar'],['de','da','te','ta'],['den','dan','ten','tan'],['im','ım','um','üm'],['imiz','ımız','umuz','ümüz'],['iniz','ınız','unuz','ünüz'],['e','a'],['la','le'],['iyor','ıyor','uyor','üyor'],['um','ım','im','üm'],['uz','ız','iz','üz'],['sun','sın','sin','sün'],['dı','di','du','dü','tı','ti'],['ti','tı','di','dı'],['ma','me'],['mi','mı','mu','mü'],['abil','ebil'],['mek','mak'],['ür','ur','ır','ir'],['üz','uz','iz','ız'],['yim','yım','yum','yüm'],['k'],['m'],['yor']];
+const BUILD_NOTES={ler:'الجمع',lar:'الجمع',de:'في (ظرفية)',da:'في (ظرفية)',te:'في (بعد حرف قاسٍ)',ta:'في (بعد حرف قاسٍ)',den:'من',dan:'من',ten:'من (بعد حرف قاسٍ)',tan:'من (بعد حرف قاسٍ)',im:'ـي (ملكية)',ım:'ـي (ملكية)',imiz:'ـنا (ملكية)',ımız:'ـنا (ملكية)',iniz:'ـكم (ملكية)',e:'إلى',a:'إلى',la:'مع',le:'مع',iyor:'المضارع المستمر',ıyor:'المضارع المستمر',um:'أنا',uz:'نحن',sun:'أنت',yim:'أنا (بعد حرف علة)',dı:'الماضي',ti:'الماضي (بعد حرف قاسٍ)',ma:'النفي',mi:'النفي',abil:'القدرة (يستطيع)',mek:'المصدر',ür:'المضارع العام',üz:'نحن',k:'نحن (بعد الماضي)',m:'أنا (بعد الماضي)',yor:'المضارع المستمر'};
+
+// nouns for the harmony game
+const NOUNS=['ev','oda','kapı','araba','otobüs','vapur','taksi','durak','köprü','çarşı','cami','deniz','park','sokak','mahalle','şehir','ofis','gazete','telefon','bilgisayar','çanta','mutfak','banyo','pencere','anahtar','ekmek','çay','kahve','kitap','kalem','ders','kelime','hediye','misafir','arkadaş','kardeş','çocuk','aile','öğretmen','gün','gece','yol','saat','harf','hal','rol'];
+const NOUN_AR={ev:'بيت',oda:'غرفة',kapı:'باب',araba:'سيارة',otobüs:'حافلة',vapur:'عبّارة',taksi:'تاكسي',durak:'موقف',köprü:'جسر',çarşı:'سوق',cami:'جامع',deniz:'بحر',park:'حديقة',sokak:'شارع',mahalle:'حي',şehir:'مدينة',ofis:'مكتب',gazete:'جريدة',telefon:'هاتف',bilgisayar:'حاسوب',çanta:'حقيبة',mutfak:'مطبخ',banyo:'حمّام',pencere:'نافذة',anahtar:'مفتاح',ekmek:'خبز',çay:'شاي',kahve:'قهوة',kitap:'كتاب',kalem:'قلم',ders:'درس',kelime:'كلمة',hediye:'هدية',misafir:'ضيف',arkadaş:'صديق',kardeş:'أخ',çocuk:'طفل',aile:'عائلة',öğretmen:'معلم',gün:'يوم',gece:'ليلة',yol:'طريق',saat:'ساعة',harf:'حرف',hal:'حال',rol:'دور'};
+const EXC={saat:['e','i'],harf:['e','i'],hal:['e','i'],rol:['e','ü'],kalp:['e','i']};
+
+const SCENES=[
+ {id:'simit',t:'بائع السميط',d:'صباحًا عند عربة السميط في Eminönü',who:'Simitçi Ahmet abi, a friendly street simit seller in Eminönü',goal:'اشترِ سميطين وشايًا واسأل عن السعر',open:'Günaydın abi! Taze simit var, sıcacık. Kaç tane istersin?',openAr:'صباح الخير يا أخي! عندنا سميط طازج وساخن. كم واحدة تريد؟'},
+ {id:'taxi',t:'سائق التاكسي',d:'من Taksim إلى Kadıköy',who:'Mehmet, an Istanbul taxi driver near Taksim square, chatty but honest',goal:'قل وجهتك، واسأل عن السعر، واطلب منه التوقف',open:'Buyurun, nereye gidiyoruz?',openAr:'تفضّل، إلى أين نذهب؟'},
+ {id:'pharm',t:'الصيدلية',d:'تحتاج دواءً لصداع خفيف',who:'Zeynep Hanım, a pharmacist in a neighborhood eczane',goal:'اشرح ما تحتاجه واسأل كيف تستعمله',open:'Merhaba, hoş geldiniz. Size nasıl yardımcı olabilirim?',openAr:'مرحبًا، أهلًا وسهلًا. كيف يمكنني مساعدتك؟'},
+ {id:'landlord',t:'صاحب البيت',d:'السخّان معطل والإيجار سيرتفع',who:'Hüseyin Bey, a landlord in Fatih, polite but busy',goal:'أبلغه بعطل السخّان واسأل عن الإيجار الجديد',open:'Alo, buyurun. Hüseyin ben. Bir sorun mu var?',openAr:'ألو، تفضّل. أنا حسين. هل هناك مشكلة؟'},
+ {id:'work',t:'أول يوم عمل',d:'تعارف مع زميل في المكتب',who:'Elif, a friendly colleague at a media company office in Istanbul',goal:'عرّف بنفسك وبخبرتك واسأل عن الفريق',open:'Merhaba! Yeni arkadaşımız sen misin? Ben Elif, hoş geldin!',openAr:'مرحبًا! هل أنت زميلنا الجديد؟ أنا إليف، أهلًا بك!'},
+ {id:'neighbor',t:'الجار في المصعد',d:'حديث قصير مع جار جديد',who:'Ayşe teyze, an elderly warm neighbor in the apartment building',goal:'عرّف بنفسك وتحدث عن الطقس والحي',open:'Aa, merhaba evladım! Yeni mi taşındınız? Hayırlı olsun!',openAr:'آه، مرحبًا يا بني! هل انتقلتم حديثًا؟ مبارك!'}
+];
+
+/* ===================== helpers ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const lower=s=>s.toLocaleLowerCase('tr');
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const addDays=(iso,n)=>{const d=new Date(iso+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+async function copy(text){try{await navigator.clipboard.writeText(text);toast('نُسخ')}catch{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ')}catch{toast('تعذّر النسخ')}ta.remove()}}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2000)}
+const ICON={
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ spk:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+ flame:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.5 1.2-4 2.4-5 .1 1.6.8 2.7 2 3.2C11 8.5 11 5 12 2z"/></svg>',
+ bolt:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg>',
+ send:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 6l-6 6 6 6"/></svg>',
+ cards:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="12" height="14" rx="2.5"/><path d="M8 3.5h9.5A2.5 2.5 0 0 1 20 6v11"/></svg>'
+};
+
+/* ===================== text-to-speech ===================== */
+let trVoice=null,ttsReady=false;
+function loadVoices(){try{const vs=speechSynthesis.getVoices();trVoice=vs.find(v=>/^tr/i.test(v.lang))||null;ttsReady=!!trVoice}catch{}}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=()=>{loadVoices();if(S.screen==='home')render()}}
+function speak(text,rate){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';if(trVoice)u.voice=trVoice;u.rate=rate||P.rate||.9;speechSynthesis.speak(u)}catch{}}
+const spkBtn=(t,big)=>ttsReady?`<button class="speak ${big?'big':''}" data-act="say" data-t="${esc(t)}" aria-label="استمع">${ICON.spk}</button>`:'';
+
+/* ===================== progress store ===================== */
+const DEF={showTr:true,sfx:true,khMode:'mix',custom:{},free:{level:'A2',msgs:[]},xp:0,streak:0,lastActive:'',day:'',todayXp:0,goal:50,hist:{},srs:{},seen:{},best:{},rate:.9};
+let P=JSON.parse(JSON.stringify(DEF));
+const S={screen:'home',lastTab:'home',db:null,ref:null,ai:null,aiChecked:false,saving:Promise.resolve()};
+async function initStore(){
+  try{const l=JSON.parse(localStorage.getItem('oyna.v1')||'null');if(l)P=Object.assign({},JSON.parse(JSON.stringify(DEF)),l)}catch{}
+  applyCustom();
+  render();
+  if(!hasClaude()){S.aiChecked=true;if(aiKey())S.ai=apiShim();render();return}
+  claude.use('sample').then(sm=>{S.ai=sm;S.aiChecked=true;render()}).catch(()=>{S.aiChecked=true;render()});
+  try{const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);const uid=user?await user.id():null;
+    if(db&&uid){S.ref=db.doc('data/users/'+uid+'/progress');const snap=await S.ref.get();
+      if(snap.exists){const remote=snap.data();if((remote.xp||0)>=(P.xp||0)){P=Object.assign({},JSON.parse(JSON.stringify(DEF)),JSON.parse(JSON.stringify(remote)));applyCustom()}else save()}
+      else if(P.xp>0)save();
+      render()}}catch{}
+}
+function save(){try{localStorage.setItem('oyna.v1',JSON.stringify(P))}catch{}
+  if(S.ref){const body=JSON.parse(JSON.stringify(P));S.saving=S.saving.then(()=>S.ref.set(body)).catch(()=>{})}}
+function gain(n){const T=today();if(P.day!==T){P.day=T;P.todayXp=0}
+  if(P.lastActive!==T){P.streak=P.lastActive===addDays(T,-1)?(P.streak||0)+1:1;P.lastActive=T}
+  P.todayXp+=n;P.xp+=n;P.hist[T]=(P.hist[T]||0)+n;
+  const keys=Object.keys(P.hist).sort();while(keys.length>21)delete P.hist[keys.shift()]}
+const streakNow=()=>{const T=today();return (P.lastActive===T||P.lastActive===addDays(T,-1))?P.streak:0};
+const todayXp=()=>P.day===today()?P.todayXp:0;
+const level=()=>Math.floor(Math.sqrt(P.xp/60))+1;
+// spaced repetition (Leitner boxes)
+const INT=[0,1,2,4,7,15,30,60];
+function srsGood(w){const T=today();const s=P.srs[w]||{b:0,d:T};s.b=Math.min(7,s.b+1);s.d=addDays(T,INT[s.b]);P.srs[w]=s}
+function srsBad(w){const T=today();P.srs[w]={b:1,d:T}}
+const dueWords=()=>{const T=today();return Object.entries(P.srs).filter(([w,s])=>s.d<=T&&W[w]).map(([w])=>w)};
+const learnedIn=cat=>VOCAB.filter(v=>v.cat===cat&&P.srs[v.tr]).length;
+
+/* ===================== harmony engine ===================== */
+const VOW='aeıioöuü',FRONT='eiöü',HARD='çfhkpsşt';
+function lastVowel(w){w=lower(w);for(let i=w.length-1;i>=0;i--)if(VOW.includes(w[i]))return w[i];return 'e'}
+const two=w=>EXC[w]?EXC[w][0]:(FRONT.includes(lastVowel(w))?'e':'a');
+const four=w=>{if(EXC[w])return EXC[w][1];return {a:'ı',ı:'ı',e:'i',i:'i',o:'u',u:'u',ö:'ü',ü:'ü'}[lastVowel(w)]};
+const endsV=w=>VOW.includes(w.slice(-1));
+const isHard=w=>HARD.includes(w.slice(-1));
+const mutates=w=>/[pçtk]$/.test(w)||['şehir','su'].includes(w);
+const SUFX=[
+ {k:'pl',ar:'الجمع',hint:'(ـات / ـون)',ok:()=>true,make:w=>w+'l'+two(w)+'r',opts:w=>[w+'ler',w+'lar']},
+ {k:'loc',ar:'في',hint:'(ظرف المكان)',ok:()=>true,make:w=>w+(isHard(w)?'t':'d')+two(w),opts:w=>[w+'de',w+'da',w+'te',w+'ta']},
+ {k:'abl',ar:'من',hint:'(الابتداء)',ok:()=>true,make:w=>w+(isHard(w)?'t':'d')+two(w)+'n',opts:w=>[w+'den',w+'dan',w+'ten',w+'tan']},
+ {k:'dat',ar:'إلى',hint:'(الاتجاه)',ok:w=>!mutates(w),make:w=>w+(endsV(w)?'y':'')+two(w),opts:w=>endsV(w)?[w+'ye',w+'ya']:[w+'e',w+'a']},
+ {k:'poss',ar:'ـي (ملكي)',hint:'(ملكية المتكلم)',ok:w=>!mutates(w)&&w!=='kalp',make:w=>w+(endsV(w)?'':four(w))+'m',opts:w=>endsV(w)?[w+'m',w+'ım',w+'im']:[w+'im',w+'ım',w+'um',w+'üm']},
+ {k:'q',ar:'هل…؟',hint:'(أداة السؤال)',ok:()=>true,make:w=>w+' m'+four(w),opts:w=>[w+' mi',w+' mı',w+' mu',w+' mü']}
+];
+function harmonyWhy(w,sx){
+  const v=lastVowel(w);const exc=EXC[w];
+  let s=exc?`«${w}» كلمة عربية الأصل، فتأخذ لواحق أمامية (e / i) رغم أن حرف علّتها ${v}. `:`آخر حرف علّة في «${w}» هو <b class="tr">${v}</b>، وهو ${FRONT.includes(v)?'أمامي (e i ö ü)':'خلفي (a ı o u)'}. `;
+  if(['pl','loc','abl','dat'].includes(sx.k))s+=`اللاحقة ثنائية: ${exc||FRONT.includes(v)?'e':'a'}.`;
+  else s+=`اللاحقة رباعية: a ı ← ı · e i ← i · o u ← u · ö ü ← ü.`;
+  if((sx.k==='loc'||sx.k==='abl')&&isHard(w))s+=` وبما أنها تنتهي بحرف قاسٍ (ç f h k p s ş t) يصير d ← t.`;
+  if(sx.k==='dat'&&endsV(w))s+=` وتنتهي بحرف علّة فنضيف y.`;
+  if(sx.k==='poss'&&endsV(w))s+=` وتنتهي بحرف علّة فيكفي m.`;
+  return s}
+// make wrong harmony variants of a word
+function variants(word){const out=new Set();const w=word.replace(/[.,?!]/g,'');
+  for(let i=w.length-1;i>=Math.max(0,w.length-4);i--){const c=w[i];
+    const sw={a:['e'],e:['a'],ı:['i','u'],i:['ı','ü'],u:['ü','ı'],ü:['u','i'],d:['t'],t:['d']}[c];
+    if(sw&&i>1)for(const r of sw)out.add(w.slice(0,i)+r+w.slice(i+1))}
+  out.delete(w);return [...out]}
+
+/* ===================== game factories ===================== */
+const GAMES={
+ learn:{t:'تعلّم كلمات',s:'بطاقات قصيرة ثم اختبار سريع',from:'من Drops وMemrise',c:'c-blue',g:'Aa'},
+ review:{t:'المراجعة الذكية',s:'تكرار متباعد للكلمات التي تعلّمتها',from:'من Anki',c:'c-teal',g:'↻'},
+ match:{t:'الأزواج',s:'طابق التركية بالعربية بأسرع ما يمكن',from:'من Duolingo وDrops',c:'c-gold',g:'⇄'},
+ harmony:{t:'ميزان الانسجام',s:'اختر اللاحقة الصحيحة: ler أم lar؟',from:'خاصة بالتركية',c:'c-red',g:'e|a'},
+ build:{t:'بنّاء الكلمة',s:'ركّب الكلمة من جذرها ولواحقها',from:'من LingoDeer',c:'c-blue',g:'+'},
+ cloze:{t:'أكمل الجملة',s:'جمل حقيقية من حياة إسطنبول',from:'من Clozemaster',c:'c-teal',g:'_'},
+ order:{t:'رتّب الجملة',s:'الفعل في آخر الجملة التركية',from:'من Duolingo',c:'c-gold',g:'1 2 3'},
+ listen:{t:'اسمع واختر',s:'درّب أذنك قبل لسانك',from:'من Pimsleur',c:'c-ok',g:'♪'},
+ bridges:{t:'جسور عربية',s:'كلمات عربية الأصل وفخاخ معناها',from:'من Memrise، مصمّمة لك',c:'c-red',g:'ع'},
+ kahoot:{t:'Yarışma: تحدّي السرعة',s:'أسئلة بالوقت ضد منافسين، على طريقة Kahoot',from:'من Kahoot!',c:'c-red',g:'!'},
+ role:{t:'مواقف إسطنبول',s:'حاور سائقًا وبائعًا وجارًا، ويصحّح لك',from:'من Babbel وMondly',c:'c-teal',g:'…'}
+};
+let G=null;
+function mcq(prompt,options,answer,extra={}){return {kind:'mcq',prompt,options:shuffle(options),answer,...extra}}
+function arDistract(v,n=3){const same=VOCAB.filter(x=>x.cat===v.cat&&x.tr!==v.tr&&x.ar!==v.ar);const pool=same.length>=n?same:VOCAB.filter(x=>x.tr!==v.tr&&x.ar!==v.ar);return pick(pool,n)}
+function poolWords(){const learned=VOCAB.filter(v=>P.srs[v.tr]);return learned.length>=8?learned:VOCAB}
+function makeItems(type,arg){
+  if(type==='review'){let due=dueWords();if(!due.length)due=Object.keys(P.srs).filter(w=>W[w]);
+    return shuffle(due).slice(0,12).map(w=>{const v=W[w];const r=Math.random();
+      if(r<.4)return mcq(`<div class="prompt"><span class="tr">${esc(v.tr)}</span>${spkBtn(v.tr)}</div>`,[v.ar,...arDistract(v).map(x=>x.ar)],v.ar,{q:'ماذا تعني؟',word:v.tr,say:v.tr,note:v.note});
+      if(r<.75||!ttsReady)return mcq(`<div class="prompt"><span class="ar">${esc(v.ar)}</span></div>`,[v.tr,...arDistract(v).map(x=>x.tr)],v.tr,{q:'كيف تقولها بالتركية؟',word:v.tr,trOpts:1,say:v.tr,note:v.note});
+      return mcq(`<div style="text-align:center">${spkBtn(v.tr,1)}</div>`,[v.ar,...arDistract(v).map(x=>x.ar)],v.ar,{q:'استمع: ماذا سمعت؟',word:v.tr,say:v.tr,autoSay:1,note:v.note})})}
+  if(type==='learnquiz'){return shuffle(arg).map(v=>Math.random()<.5?mcq(`<div class="prompt"><span class="tr">${esc(v.tr)}</span>${spkBtn(v.tr)}</div>`,[v.ar,...arDistract(v).map(x=>x.ar)],v.ar,{q:'ماذا تعني؟',word:v.tr,say:v.tr,note:v.note}):mcq(`<div class="prompt"><span class="ar">${esc(v.ar)}</span></div>`,[v.tr,...arDistract(v).map(x=>x.tr)],v.tr,{q:'اختر الكلمة التركية',word:v.tr,trOpts:1,say:v.tr,note:v.note}))}
+  if(type==='harmony'){const items=[];let guard=0;while(items.length<12&&guard++<200){const w=NOUNS[Math.random()*NOUNS.length|0];const sx=SUFX[Math.random()*SUFX.length|0];if(!sx.ok(w))continue;const ans=sx.make(w);if(items.some(i=>i.answer===ans))continue;
+    const opts=[...new Set(sx.opts(w))];if(!opts.includes(ans))opts.push(ans);
+    items.push(mcq(`<div class="prompt"><span class="tr">${esc(w)}</span><span style="color:var(--muted)">${esc(NOUN_AR[w]||'')}</span><span style="margin-inline-start:auto;font-weight:800;color:var(--red);font-size:20px">+ ${esc(sx.ar)}</span></div>`,opts.slice(0,4),ans,{q:`أضف لاحقة <b>${esc(sx.ar)}</b> ${esc(sx.hint)}`,trOpts:1,two:opts.length<=2,say:ans,why:harmonyWhy(w,sx)}))}
+    return items}
+  if(type==='cloze'){return pick(SENTS,10).map(s=>{const toks=s.tr.split(' ');const cand=toks.map((t,i)=>[t.replace(/[.,?!]/g,''),i]).filter(([t])=>t.length>=3&&!/'/.test(t));const [ans,idx]=cand[Math.random()*cand.length|0];
+    let opts=variants(ans).filter(x=>x!==ans);opts=pick(opts,2);const others=shuffle(SENTS.flatMap(x=>x.tr.split(' ').map(t=>t.replace(/[.,?!]/g,''))).filter(t=>t.length>=3&&t!==ans&&!opts.includes(t)&&!/'/.test(t)));while(opts.length<3)opts.push(others.pop());
+    const shown=toks.map((t,i)=>i===idx?`<span class="blank">${'＿'.repeat(3)}</span>${esc(t.match(/[.,?!]+$/)?.[0]||'')}`:esc(t)).join(' ');
+    return mcq(`<div class="prompt" style="flex-direction:column;align-items:stretch"><div class="sent">${shown}</div><div style="color:var(--muted);font-size:15px">${esc(s.ar)}</div></div>`,[ans,...opts],ans,{q:'أكمل الجملة',trOpts:1,two:true,say:s.tr,full:s.tr})})}
+  if(type==='listen'){return [...pick(SENTS,5).map(s=>mcq(`<div style="text-align:center">${spkBtn(s.tr,1)}<div style="margin-top:4px"><button class="link" data-act="slow" data-t="${esc(s.tr)}">أبطأ</button></div></div>`,[s.ar,...pick(SENTS.filter(x=>x!==s),3).map(x=>x.ar)],s.ar,{q:'استمع: ما معنى الجملة؟',say:s.tr,autoSay:1,full:s.tr})),
+    ...pick(VOCAB,5).map(v=>mcq(`<div style="text-align:center">${spkBtn(v.tr,1)}</div>`,[v.ar,...arDistract(v).map(x=>x.ar)],v.ar,{q:'استمع: ماذا سمعت؟',say:v.tr,autoSay:1,word:v.tr,full:v.tr}))]}
+  if(type==='bridges'){return pick(BRIDGES,10).map(b=>{const others=pick(BRIDGES.filter(x=>x.tr!==b.tr&&x.ar!==b.ar),3).map(x=>x.ar);
+    return mcq(`<div class="prompt"><span class="tr">${esc(b.tr)}</span>${spkBtn(b.tr)}</div>`,[b.ar,...others],b.ar,{q:'ماذا تعني في التركية؟ (احذر الفخاخ)',say:b.tr,bridge:b})})}
+  if(type==='order'){return pick(SENTS.filter(s=>s.tr.split(' ').length>=3&&s.tr.split(' ').length<=7),8).map(s=>({kind:'order',s,toks:shuffle(s.tr.split(' ').map((t,i)=>({t,i})))}))}
+  if(type==='build'){return pick(BUILD,8).map(b=>{const extra=[];b.p.slice(1).forEach(part=>{const set=SUFFIX_SETS.find(st=>st.includes(part));if(set){const sib=set.filter(x=>x!==part&&!b.p.includes(x));if(sib.length)extra.push(sib[Math.random()*sib.length|0])}});
+    const blocks=[...b.p.map((t,i)=>({t,i,root:i===0})),...pick(extra,Math.min(3,extra.length)).map(t=>({t,i:-1}))];return {kind:'build',b,blocks:shuffle(blocks)}})}
+  if(type==='match'){const pool=poolWords();return [0,1,2].map(()=>({kind:'match',pairs:pick(pool,5)}))}
+  return []
+}
+function start(type,arg){
+  if(type==='learn'){S.screen='cats';render();return}
+  if(type==='role'){S.screen='talk';render();return}
+  if(type==='kahoot'){kNew();S.screen='kahoot';render();return}
+  if(type==='review'&&!Object.keys(P.srs).length){toast('تعلّم بعض الكلمات أولًا');S.screen='cats';render();return}
+  if(type==='listen'&&!ttsReady){toast('لا يوجد صوت تركي على هذا الجهاز');return}
+  const items=makeItems(type,arg);if(!items.length){toast('لا عناصر كافية بعد');return}
+  G={type,items,i:0,ok:0,xp:0,combo:0,best:0,state:'q',sel:[],t0:Date.now(),missed:[]};S.screen='play';render();autoSay();
+}
+function autoSay(){const it=G&&G.items[G.i];if(it&&it.autoSay&&ttsReady)setTimeout(()=>speak(it.say),300)}
+
+/* ===================== rendering (iOS shell) ===================== */
+const TABS=[
+ ['home','اليوم','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5c1 4 5 5.5 5 11a5 5 0 0 1-10 0c0-2.5 1.2-4 2.4-5 .1 1.6.8 2.7 2 3.2C11 8.5 11 5.5 12 2.5z"/></svg>'],
+ ['games','الألعاب','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg>'],
+ ['talk','المحادثة','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-5 4z"/></svg>'],
+ ['me','التقدّم','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V12M12 20V5M19 20v-5"/></svg>']
+];
+const TITLE={home:'اليوم',games:'الألعاب',talk:'المحادثة',me:'التقدّم',cats:'تعلّم كلمات'};
+const GICON={learn:['i-blue','Aa'],review:['i-teal','↻'],match:['i-orange','⇄'],listen:['i-green','♪'],harmony:['i-red','e|a'],build:['i-indigo','+'],cloze:['i-teal','_'],order:['i-orange','123'],bridges:['i-purple','ع'],role:['i-blue','…'],kahoot:['i-purple',ICON.bolt]};
+function render(){
+  if(['home','games','talk','me'].includes(S.screen))S.lastTab=S.screen;
+  const a=$('#app');
+  if(S.screen==='role'||S.screen==='free'){lockPage(true);renderChat();return}
+  if(S.screen==='kahoot'){lockPage(true);a.innerHTML=vKahoot();return}
+  lockPage(false);
+  const shell=['home','games','talk','me','cats'].includes(S.screen);
+  const body=({home:vHome,games:vGames,talk:vScenes,me:vMe,cats:vCats,learn:vLearn,play:vPlay,end:vEnd})[S.screen]();
+  if(shell){
+    const st=streakNow();
+    a.innerHTML=`<header class="nav" id="nav"><div class="wrap in">
+      <div>${S.screen==='cats'?`<button class="link" data-act="back">‹ رجوع</button>`:`<span class="chipstat" style="color:${st?'var(--red)':'var(--muted)'}">${ICON.flame}${st}</span>`}</div>
+      <div class="mid">${TITLE[S.screen]}</div>
+      <div class="end"><span class="chipstat" style="color:var(--orange)">${ICON.bolt}<span style="color:var(--ink)">${P.xp}</span></span></div></div></header>
+      <main class="wrap">${body}</main>
+      <nav class="tabbar"><div class="in">${TABS.map(([k,l,ic])=>`<button class="tb" data-act="tab" data-to="${k}" aria-selected="${S.lastTab===k}">${ic}${l}${k==='home'&&dueWords().length?`<span class="dot">${dueWords().length}</span>`:''}</button>`).join('')}</div></nav>`;
+    onScroll();
+  }else a.innerHTML=body;
+}
+function onScroll(){const n=$('#nav');if(n)n.classList.toggle('scrolled',scrollY>36)}
+window.addEventListener('scroll',onScroll,{passive:true});
+const chev='<svg class="chev" viewBox="0 0 9 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1L1.5 7 7 13"/></svg>';
+function ring(v,max){const r=30,c=2*Math.PI*r,p=Math.min(1,v/max);return `<div class="ring"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--fill)" stroke-width="8"/><circle cx="36" cy="36" r="${r}" fill="none" stroke="${p>=1?'var(--green)':'var(--teal)'}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg><b>${v}</b></div>`}
+function gameCell(k,badge){const g=GAMES[k],[c,glyph]=GICON[k];const off=k==='listen'&&!ttsReady;
+  return `<button class="cell" data-act="go" data-g="${k}" ${off?'disabled':''}><span class="ico ${c}">${glyph}</span><div class="body"><div class="t">${g.t}</div><div class="s">${off?'يحتاج صوتًا تركيًا على الجهاز':g.s}</div></div>${badge?badge:''}${chev}</button>`}
+function hello(){const h=new Date().getHours();return h<12?'Günaydın':h<18?'İyi günler':'İyi akşamlar'}
+function vHome(){
+  const tx=todayXp(),due=dueWords().length,learned=Object.keys(P.srs).length;
+  const days=[...Array(7)].map((_,i)=>addDays(today(),i-6));const mx=Math.max(P.goal,...days.map(d=>P.hist[d]||0));
+  const hero=due?{a:'review',big:`مراجعة اليوم: ${due} كلمة`,sm:'الكلمات التي حان وقتها قبل أن تنساها'}:learned<12?{a:'learn',big:'ابدأ بكلمات جديدة',sm:'ست كلمات من حياة إسطنبول في دقيقتين'}:{a:'match',big:'جولة سريعة',sm:'لا مراجعات مستحقة. حافظ على شعلتك'};
+  return `<div class="lt"><h1><span class="tr" style="font-weight:700">${hello()}</span></h1><p>${new Intl.DateTimeFormat('ar-u-nu-latn',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}</p></div>
+  <div class="stack">
+   <div class="widget">${ring(tx,P.goal)}<div><h2>${tx>=P.goal?'أنجزت هدف اليوم':'هدف اليوم '+P.goal+' نقطة'}</h2><p>${tx>=P.goal?'الشعلة مستمرة '+streakNow()+' يوم':'باقي '+(P.goal-tx)+' نقطة'}</p>
+    <div class="week">${days.map(d=>`<i class="${(P.hist[d]||0)>0?'on':''} ${d===today()?'now':''}" style="height:${Math.max(4,Math.round(((P.hist[d]||0)/mx)*28))}px"></i>`).join('')}</div></div></div>
+   <button class="hero" data-act="go" data-g="${hero.a}"><span class="ic">${ICON.cards}</span><span><span class="big">${hero.big}</span><br><span class="sm">${hero.sm}</span></span></button>
+   <section><h2 class="gtitle">تابع</h2><div class="group">
+     ${gameCell('kahoot')}
+     ${gameCell('learn',`<span class="v">${VOCAB.filter(v=>!P.srs[v.tr]).length}</span>`)}
+     ${gameCell('review',due?`<span class="badge">${due}</span>`:'')}
+     ${gameCell('harmony')}
+     ${gameCell('role')}
+   </div></section>
+   <section><h2 class="gtitle">كلمة اليوم</h2>${wordOfDay()}</section>
+  </div>`}
+function wordOfDay(){const pool=BRIDGES.filter(b=>b.kind==='shift');const n=Math.floor(new Date(today()).getTime()/864e5)%pool.length;const b=pool[n];
+  return `<div class="group"><div class="cell plain" style="cursor:default;align-items:flex-start"><div class="body"><div class="t"><span class="tr" style="font-size:22px">${esc(b.tr)}</span> = ${esc(b.ar)}</div><div class="s" style="margin-top:4px">${esc(b.note)}</div></div>${ttsReady?`<button class="speak" data-act="say" data-t="${esc(b.tr)}">${ICON.spk}</button>`:''}</div></div>`}
+function vGames(){const due=dueWords().length;
+  return `<div class="lt"><h1>الألعاب</h1><p>كل لعبة مأخوذة من أنجح فكرة في تطبيق مشهور</p></div>
+  <div class="stack">
+   <section><h2 class="gtitle">تحدٍّ</h2><div class="group">${gameCell('kahoot')}</div><p class="gfoot">عشرة أسئلة بالوقت ضد أربعة منافسين، والأسرع يربح أكثر.</p></section>
+   <section><h2 class="gtitle">تعلّم وثبّت</h2><div class="group">${gameCell('learn')}${gameCell('review',due?`<span class="badge">${due}</span>`:'')}${gameCell('match')}${gameCell('listen')}</div><p class="gfoot">مستوحاة من Drops وMemrise وAnki وDuolingo وPimsleur.</p></section>
+   <section><h2 class="gtitle">أسرار التركية</h2><div class="group">${gameCell('harmony')}${gameCell('build')}${gameCell('cloze')}${gameCell('order')}</div><p class="gfoot">الانسجام الصوتي واللواحق هما قلب التركية. هنا تتدرب عليهما مباشرة.</p></section>
+   <section><h2 class="gtitle">لأنك تتكلم العربية</h2><div class="group">${gameCell('bridges')}</div><p class="gfoot">مئات الكلمات التركية عربية الأصل، وبعضها تغيّر معناه.</p></section>
+  </div>`}
+function vMe(){const learned=Object.keys(P.srs).length,mastered=Object.values(P.srs).filter(s=>s.b>=4).length;
+  return `<div class="lt"><h1>التقدّم</h1><p>المستوى ${level()}</p></div>
+  <div class="stack">
+   <div class="trio"><div class="mini"><b style="color:var(--red)">${streakNow()}</b><span>أيام متتالية</span></div><div class="mini"><b style="color:var(--orange)">${P.xp}</b><span>نقطة</span></div><div class="mini"><b style="color:var(--teal)">${learned}</b><span>كلمة تعلّمتها</span></div></div>
+   <section><h2 class="gtitle"><span>المواضيع</span><span>${mastered} كلمة راسخة</span></h2><div class="group">${Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x.cat===k)).map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length,l=learnedIn(k);return `<button class="cell plain" data-act="learnCat" data-c="${k}"><div class="body"><div class="t">${v}</div><div class="bar"><i style="width:${Math.round(l/tot*100)}%"></i></div></div><span class="v">${l}/${tot}</span>${chev}</button>`}).join('')}</div></section>
+   <section><h2 class="gtitle">الإعدادات</h2><div class="group">
+     <div class="cell plain" style="cursor:default"><div class="body"><div class="t">هدف اليوم</div></div><div class="segc" style="width:170px">${[30,50,100].map(g=>`<button data-act="goal" data-v="${g}" aria-pressed="${P.goal===g}">${g}</button>`).join('')}</div></div>
+     <div class="cell plain" style="cursor:default"><div class="body"><div class="t">الترجمة تحت التركية</div><div class="s">في المحادثات والاقتراحات</div></div><div class="segc" style="width:170px"><button data-act="showTr" data-v="1" aria-pressed="${showTr()}">تظهر</button><button data-act="showTr" data-v="0" aria-pressed="${!showTr()}">عند الطلب</button></div></div>
+     <div class="cell plain" style="cursor:default"><div class="body"><div class="t">سرعة الصوت</div><div class="s">${ttsReady?'صوت تركي متوفر':'لا يوجد صوت تركي على الجهاز'}</div></div><div class="segc" style="width:170px">${[[.7,'بطيئة'],[.9,'عادية']].map(([r,l])=>`<button data-act="rate" data-v="${r}" aria-pressed="${Math.abs((P.rate||.9)-r)<.05}" ${ttsReady?'':'disabled'}>${l}</button>`).join('')}</div></div>
+     <div class="cell plain" style="cursor:default"><div class="body"><div class="t">مؤثرات Yarışma</div></div><div class="segc" style="width:170px"><button data-act="sfxSet" data-v="1" aria-pressed="${P.sfx!==false}">تعمل</button><button data-act="sfxSet" data-v="0" aria-pressed="${P.sfx===false}">مطفأة</button></div></div>
+   </div>${ttsReady?'':'<p class="gfoot">لتفعيل الاستماع على الآيفون: الإعدادات ← تسهيلات الاستخدام ← المحتوى المنطوق ← الأصوات ← التركية.</p>'}</section>
+   ${hasClaude()?'':aiSettings()}
+   <section><h2 class="gtitle">نقل التقدّم</h2><div class="group">
+     <button class="cell plain" data-act="expP"><div class="body"><div class="t" style="color:var(--tint)">انسخ رمز تقدّمي</div><div class="s">لنقل نقاطك وكلماتك إلى جهاز أو نسخة أخرى</div></div></button>
+     <button class="cell plain" data-act="impOpen"><div class="body"><div class="t" style="color:var(--tint)">الصق رمز تقدّم</div></div></button>
+     ${S.imp?`<div class="cell plain" style="cursor:default;flex-direction:column;align-items:stretch;gap:6px"><textarea id="impT" class="ta" rows="4" placeholder="الصق الرمز هنا"></textarea><div class="s">سيحلّ محل تقدّمك الحالي على هذا الجهاز.</div><button class="btn" data-act="impApply">استيراد</button></div>`:''}
+   </div></section>
+   <p class="gfoot" style="text-align:center">${hasClaude()?'تقدّمك محفوظ في حسابك ويظهر على كل أجهزتك.':'تقدّمك محفوظ على هذا الجهاز.'}</p>
+  </div>`}
+function aiSettings(){const k=aiKey();return `<section><h2 class="gtitle">المساعد الذكي</h2><div class="group">
+   <div class="cell plain" style="cursor:default"><div class="body"><div class="t">مفتاح Anthropic API</div></div>${k&&S.ai?'<span class="v" style="color:var(--green)">مفعّل</span>':''}</div>
+   <div class="cell plain" style="cursor:default"><input id="keyIn" class="fld" type="password" placeholder="sk-ant-…" value="${esc(k)}" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+   <div class="cell plain" style="cursor:default"><button class="btn" data-act="keySave" style="min-height:40px;padding:8px">حفظ واختبار</button></div>
+  </div><p class="gfoot" id="keyMsg">${k?'':'تحتاجه الدردشة الحرة ومواقف إسطنبول وزر «لماذا؟». أنشئه من console.anthropic.com ← API Keys. إن أدخلته في دفتر الصلات على حساب GitHub نفسه يعمل هنا تلقائيًا.'}</p></section>`}
+function vCats(){return `<div class="lt"><h1>اختر موضوعًا</h1><p>ست كلمات في كل جولة</p></div>
+  <div class="stack"><div class="group">${Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x.cat===k)).map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length,l=learnedIn(k);return `<button class="cell plain" data-act="learnCat" data-c="${k}"><div class="body"><div class="t">${v}</div><div class="bar"><i style="width:${Math.round(l/tot*100)}%"></i></div></div><span class="v">${l}/${tot}</span>${chev}</button>`}).join('')}</div></div>`}
+let L=null;
+const closeBtn=act=>`<button class="link" data-act="${act}" style="flex:none">إغلاق</button>`;
+function vLearn(){const v=L.words[L.i];return `<div class="play wrap"><div class="ptop">${closeBtn('back')}<div class="prog"><i style="width:${(L.i/L.words.length)*50}%"></i></div></div>
+  <div class="pbody"><p class="qlabel">كلمة جديدة<small>${esc(CATS[v.cat])}</small></p>
+   <div class="card"><span class="tr">${esc(v.tr)}</span>${spkBtn(v.tr)}<span class="ar">${esc(v.ar)}</span>${v.note?`<div class="note"><b>جسر:</b> ${esc(v.note)}</div>`:''}</div>
+   <div class="dots">${L.words.map((_,i)=>`<i class="${i<=L.i?'on':''}"></i>`).join('')}</div></div>
+  <div class="fbar"><div class="wrap"><button class="btn" data-act="learnNext">${L.i<L.words.length-1?'التالية':'اختبرني'}</button></div></div></div>`}
+function vPlay(){const it=G.items[G.i];const pct=G.i/G.items.length*100;
+  let body='';
+  if(it.kind==='mcq')body=`<p class="qlabel">${it.q}</p>${it.prompt}<div class="opts ${it.two||(it.trOpts&&it.options.length===4)?'two':''}">${it.options.map((o,k)=>`<button class="opt ${it.trOpts?'tr':''} ${G.state!=='q'?(o===it.answer?'right':(G.pick===o?'wrong':'')):''}" data-act="ans" data-k="${k}" ${G.state!=='q'?'disabled':''}>${esc(o)}</button>`).join('')}</div>`;
+  if(it.kind==='order'){const chosen=G.sel.map(i=>it.toks[i]);body=`<p class="qlabel">رتّب الجملة<small>${esc(it.s.ar)}</small></p><div class="answer">${chosen.map((t,k)=>`<button class="tile" data-act="unsel" data-k="${k}">${esc(t.t)}</button>`).join('')}</div><div class="tiles">${it.toks.map((t,i)=>`<button class="tile ${G.sel.includes(i)?'used':''}" data-act="sel" data-i="${i}">${esc(t.t)}</button>`).join('')}</div>`}
+  if(it.kind==='build'){const chosen=G.sel.map(i=>it.blocks[i]);body=`<p class="qlabel">ركّب كلمة تعني<small style="font-size:24px;color:var(--ink);font-weight:700;margin-top:4px">«${esc(it.b.ar)}»</small></p><div class="answer word">${chosen.length?chosen.map((t,k)=>`<button class="tile" data-act="unsel" data-k="${k}">${esc(t.t)}</button>`).join(''):'<span style="color:var(--muted);font-size:15px;font-family:var(--font)">ابدأ بالجذر (بالأزرق)</span>'}</div><div class="tiles">${it.blocks.map((t,i)=>`<button class="tile ${t.root?'root':''} ${G.sel.includes(i)?'used':''}" data-act="sel" data-i="${i}">${t.root?'':'-'}${esc(t.t)}</button>`).join('')}</div>`}
+  if(it.kind==='match'){if(!it.state){it.state={left:shuffle(it.pairs.map(p=>p.tr)),right:shuffle(it.pairs.map(p=>p.ar)),done:[],a:null,b:null}}const m=it.state;
+    body=`<p class="qlabel">طابق الأزواج<small>الجولة ${G.i+1} من ${G.items.length}</small></p><div class="match"><div class="col">${m.left.map(t=>`<button class="mi tr ${m.done.includes(t)?'done':''} ${m.a===t?'sel':''}" data-act="ml" data-v="${esc(t)}">${esc(t)}</button>`).join('')}</div><div class="col">${m.right.map(t=>{const p=it.pairs.find(x=>x.ar===t);return `<button class="mi ${m.done.includes(p.tr)?'done':''} ${m.b===t?'sel':''}" data-act="mr" data-v="${esc(t)}">${esc(t)}</button>`}).join('')}</div></div>`}
+  return `<div class="play wrap"><div class="ptop">${closeBtn('quit')}<div class="prog"><i style="width:${pct}%"></i></div><span class="combo">${G.combo>=3?'×'+G.combo:''}</span></div>
+   <div class="pbody">${body}</div>${fbar(it)}</div>`}
+function fbar(it){
+  if(G.state==='q'){if(it.kind==='order'||it.kind==='build')return `<div class="fbar"><div class="wrap"><button class="btn" data-act="check" ${G.sel.length?'':'disabled'}>تحقّق</button></div></div>`;return ''}
+  const ok=G.state==='ok';let detail='';
+  if(it.kind==='mcq'){if(!ok)detail=`<p>الصحيح: <b class="${it.trOpts?'tr':''}">${esc(it.answer)}</b>${it.full?` <span class="tr" style="font-weight:500">· ${esc(it.full)}</span>`:''}</p>`;
+    if(it.why)detail+=`<p>${it.why}</p>`;if(it.bridge)detail+=`<p><b>${it.bridge.kind==='same'?'نفس المعنى العربي.':'معنى مختلف!'}</b> ${esc(it.bridge.note)}</p>`;if(it.note&&!it.bridge&&ok)detail+=`<p>${esc(it.note)}</p>`}
+  if(it.kind==='order'){detail=`<p class="tr" style="font-size:18px;text-align:left">${esc(it.s.tr)}</p>`;if(!ok)detail+=`<p>تذكّر: الفعل يأتي غالبًا في آخر الجملة التركية.</p>`}
+  if(it.kind==='build'){detail=`<p><span class="tr" style="font-size:20px">${esc(it.b.p.join(''))}</span> = ${it.b.p.map((x,i)=>i===0?`<b class="tr">${esc(x)}</b>`:`<span class="tr">-${esc(x)}</span> ${BUILD_NOTES[x]?'('+BUILD_NOTES[x]+')':''}`).join(' + ')}</p>`}
+  const say=it.say||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''));
+  return `<div class="fbar ${ok?'ok':'bad'}"><div class="wrap"><div class="row"><h3 style="flex:1">${ok?pickOne(['ممتاز!','أحسنت!','صحيح!','Harika!','Süper!']):'ليست هذه'}</h3>${!ok&&S.ai&&!it.why&&!it.bridge?`<button class="why" data-act="aiwhy">لماذا؟</button>`:''}${say&&ttsReady?`<button class="speak" data-act="say" data-t="${esc(say)}">${ICON.spk}</button>`:''}</div>${detail}<div id="aiwhy"></div><button class="btn ${ok?'okb':'badb'}" data-act="next">متابعة</button></div></div>`}
+const pickOne=a=>a[Math.random()*a.length|0];
+function vEnd(){const acc=Math.round(G.ok/G.items.length*100);const secs=Math.round((Date.now()-G.t0)/1000);
+  return `<div class="wrap"><div class="end"><h2>${acc===100?'جولة كاملة!':acc>=70?'أحسنت':'تدريب جيد'}</h2><p style="margin:0;color:var(--muted)">${esc(GAMES[G.type==='learnquiz'?'learn':G.type].t)}</p>
+   <div class="stats3"><div class="s3"><b style="color:var(--orange)">+${G.xp}</b><span>نقطة</span></div><div class="s3"><b style="color:var(--green)">${acc}%</b><span>دقة</span></div><div class="s3"><b>${secs}</b><span>ثانية</span></div></div>
+   ${ring(todayXp(),P.goal)}<p style="margin:0">${todayXp()>=P.goal?'أنجزت هدف اليوم. الشعلة '+streakNow()+' يوم':'باقي '+(P.goal-todayXp())+' نقطة لهدف اليوم'}</p>
+   ${G.missed.length?`<div class="note"><b>راجع:</b> <span class="tr">${G.missed.slice(0,6).map(esc).join(' · ')}</span></div>`:''}
+   <button class="btn" data-act="again">جولة أخرى</button><button class="btn ghost" data-act="back">تم</button></div></div>`}
+function vScenes(){return `<div class="lt"><h1>المحادثة</h1><p>مواقف من حياتك في إسطنبول</p></div>
+  <div class="stack">${aiMissingBanner()}
+  <section><h2 class="gtitle">حديث مفتوح</h2><div class="group"><button class="cell" data-act="free"><span class="ico i-teal" style="font-size:16px">☕</span><div class="body"><div class="t">دردشة حرة مع Deniz</div><div class="s">${freeState().msgs.length?'تابع حديثكما':'تكلّم في أي موضوع، بمستواك، ويصحّح لك'}</div></div>${chev}</button></div></section>
+  <section><h2 class="gtitle">مواقف لها مهمة</h2><div class="group">${SCENES.map(s=>`<button class="cell" data-act="scene" data-id="${s.id}"><span class="ico i-blue" style="font-family:var(--font);font-size:15px">${s.t[0]}</span><div class="body"><div class="t">${s.t}</div><div class="s">${s.d}</div></div>${chev}</button>`).join('')}</div>
+  <p class="gfoot">اكتب بالتركية قدر استطاعتك، أو بالعربية إن علقت. الشخصية ترد بتركية بسيطة، وتصحّح أخطاءك بجملة عربية قصيرة.</p></section></div>`}
+
+
+/* ===================== roleplay (asks Claude) ===================== */
+let R=null;
+async function aiWhy(){const it=G.items[G.i];const el=$('#aiwhy');if(!el||!S.ai)return;el.innerHTML='<p>يشرح…</p>';
+  const ctx=it.kind==='mcq'?`Question: ${it.q.replace(/<[^>]+>/g,'')}. ${it.full?'Sentence: '+it.full+'. ':''}${it.word?'Word: '+it.word+'. ':''}Learner chose: "${G.pick||''}". Correct: "${it.answer}".`:it.kind==='order'?`Learner had to order the Turkish sentence "${it.s.tr}" (${it.s.ar}) and produced "${G.sel.map(i=>it.toks[i].t).join(' ')}".`:`Learner built "${G.sel.map(i=>it.blocks[i].t).join('')}" but the correct word is "${it.b.p.join('')}" (${it.b.ar}).`;
+  try{const r=await S.ai(`An Arabic-speaking beginner is learning Turkish. ${ctx} In 1-2 short, clear Arabic sentences, explain why the correct answer is right (grammar rule or meaning). Plain text, no markdown.`,{modelTier:'quick'});el.innerHTML=`<p>${esc(r.text)}</p>`}catch{el.innerHTML='<p>تعذّر الشرح الآن.</p>'}}
+
+/* ===================== free chat (asks Claude) ===================== */
+const LEVELS=[['A1','مبتدئ'],['A2','أساسي'],['B1','متوسط'],['B2','متقدم']];
+const STARTERS=[
+ ['عرّفني بنفسك','Merhaba! Biraz kendinden bahseder misin?'],
+ ['يومي','Bugün günüm çok yoğundu.'],
+ ['اسألني عن اليمن','Bana Yemen hakkında soru sor.'],
+ ['الأكل التركي','En sevdiğin Türk yemeği ne?'],
+ ['إسطنبول','İstanbul\'da en sevdiğin semt hangisi?'],
+ ['تعابير عامية','Bana günlük hayatta kullanılan bir deyim öğret.'],
+ ['كيف أقول…؟','كيف أقول بالتركية: أنا متعب لكني سعيد؟']
+];
+function applyCustom(){CATS.mine=CATS.mine||'كلماتي من الدردشة';for(const [tr,ar] of Object.entries(P.custom||{})){if(!W[tr]){const v={tr,ar,cat:'mine',note:'من الدردشة الحرة'};VOCAB.push(v);W[tr]=v}}}
+function freeState(){if(!P.free)P.free={level:'A2',msgs:[]};return P.free}
+let FB={busy:false,hints:[]};
+const LEVEL_RULES={A1:'Use very short, simple sentences (max ~8 words), present tense, the most common words. Speak slowly and clearly.',A2:'Use short, simple sentences; present, past (-di) and future (-ecek) tenses; everyday vocabulary.',B1:'Use natural everyday Istanbul Turkish with a richer vocabulary; occasional idioms are fine.',B2:'Speak naturally like a well-read native friend; idioms, nuance and longer sentences are fine.'};
+/* ===================== chat screens: fixed layout that fits the phone ===================== */
+const hasClaude=()=>!!(window.claude&&window.claude.use);
+const showTr=()=>P.showTr!==false;
+const SEND_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
+const normHint=h=>typeof h==='string'?{tr:h,ar:''}:{tr:String(h&&h.tr||''),ar:String(h&&h.ar||'')};
+function hintsHTML(list){return (list||[]).map(normHint).filter(h=>h.tr).map(h=>`<button data-act="hint" data-t="${esc(h.tr)}"><span class="tr">${esc(h.tr)}</span>${showTr()&&h.ar?`<small>${esc(h.ar)}</small>`:''}</button>`).join('')}
+function bubThem(m,i,withWords){
+  const arOn=m.ar&&(showTr()||m.showAr||!m.tr);
+  return `${m.fix?`<div class="fix"><b>الأصح:</b> <span class="tr">${esc(m.fix.better)}</span><br>${esc(m.fix.why)}</div>`:''}
+  <div class="bub them">${m.tr?`<div class="trl">${esc(m.tr)}</div>`:''}${arOn?`<div class="arl ${m.tr?'':'solo'}">${esc(m.ar)}</div>`:''}
+   <div class="acts">${m.tr&&ttsReady?`<button data-act="say" data-t="${esc(m.tr)}">استمع</button>`:''}${m.tr&&!arOn?`<button data-act="showAr" data-i="${i}">الترجمة</button>`:''}</div>
+   ${withWords&&m.words&&m.words.length?`<div class="acts" style="flex-wrap:wrap">${m.words.map((w,k)=>{const have=!!P.srs[w.tr];return `<button data-act="addWord" data-i="${i}" data-k="${k}" ${have?'disabled style="color:var(--green)"':''}><span class="tr">${esc(w.tr)}</span> · ${esc(w.ar)} ${have?'✓':'＋'}</button>`}).join('')}</div>`:''}
+  </div>`}
+function chatParts(){
+  if(S.screen==='role'){const sc=R.sc;
+    return {title:sc.t,end:'',top:`<div class="goal ${R.done?'done':''}">${R.done?'✓ أنجزت المهمة':'المهمة'}: ${esc(sc.goal)}</div>`,
+      msgs:R.msgs.map((m,i)=>m.r==='me'?`<div class="bub me" dir="auto">${esc(m.t)}</div>`:bubThem(m,i,false)).join('')+(R.busy?'<div class="typing"><i></i><i></i><i></i></div>':''),
+      hints:R.busy?'':hintsHTML(R.hints),busy:R.busy,ph:'اكتب بالتركية…'}}
+  const f=freeState();
+  return {title:'دردشة حرة',end:f.msgs.length&&!FB.busy?'<button class="link" data-act="freeClear">جديدة</button>':'',
+    top:`<div class="segc">${LEVELS.map(([k,l])=>`<button data-act="freeLevel" data-v="${k}" aria-pressed="${f.level===k}">${l} <span class="tr" style="font-weight:500;opacity:.6;font-size:11px">${k}</span></button>`).join('')}</div>`,
+    msgs:(!f.msgs.length?`<div class="intro"><div class="cup">☕</div><h2>Deniz معك</h2><p>صديق من إسطنبول يحب الحديث في كل شيء: يومك، العمل، الأكل، الأفكار، والأخبار. اكتب بالتركية قدر ما تستطيع، أو بالعربية إن علقت. اسأله «كيف أقول…؟» أو «ما الفرق بين…؟» فيشرح لك بالعربية.</p>
+      <div class="hintrow wrapit">${STARTERS.map((s,i)=>`<button data-act="freeStart" data-i="${i}">${esc(s[0])}</button>`).join('')}</div></div>`:'')
+      +f.msgs.map((m,i)=>m.r==='me'?`<div class="bub me" dir="auto">${esc(m.t)}</div>`:bubThem(m,i,true)).join('')+(FB.busy?'<div class="typing"><i></i><i></i><i></i></div>':''),
+    hints:FB.busy?'':hintsHTML(FB.hints),busy:FB.busy,ph:'اكتب لـ Deniz…'}}
+function renderChat(){
+  const p=chatParts();const cv=$('#cv');
+  if(cv&&cv.dataset.s===S.screen){
+    $('#cvEnd').innerHTML=p.end;$('#cvTop').innerHTML=p.top;$('#chat').innerHTML=p.msgs;
+    const h=$('#cvHints');h.innerHTML=p.hints;h.hidden=!p.hints;$('#cvSend').disabled=p.busy||!$('#cIn').value.trim();
+  }else{
+    $('#app').innerHTML=`<div class="cv" id="cv" data-s="${S.screen}">
+     <header class="cnav"><div class="wrap in"><div><button class="link" data-act="${S.screen==='role'?'endRole':'freeEnd'}">‹ المحادثة</button></div><div class="mid">${esc(p.title)}</div><div class="end" id="cvEnd">${p.end}</div></div></header>
+     <div class="ctop wrap" id="cvTop">${p.top}</div>
+     <div class="cs" id="cs"><div class="wrap"><div class="chat" id="chat">${p.msgs}</div></div></div>
+     <div class="ccomp"><div class="wrap"><div class="hintrow" id="cvHints" ${p.hints?'':'hidden'}>${p.hints}</div>
+      <div class="row"><textarea id="cIn" rows="1" placeholder="${p.ph}" dir="auto" enterkeyhint="send"></textarea><button class="send" id="cvSend" data-act="cSend" aria-label="إرسال" disabled>${SEND_SVG}</button></div></div></div></div>`;
+    fitVV();requestAnimationFrame(()=>chatScroll('bottom'));
+  }
+}
+function chatScroll(mode){const cs=$('#cs');if(!cs)return;const max=cs.scrollHeight-cs.clientHeight;let t=max;
+  if(mode==='reply'){const mes=cs.querySelectorAll('.bub.me');const last=mes[mes.length-1];if(last)t=Math.min(max,Math.max(0,last.offsetTop-10))}
+  cs.scrollTop=t}
+function fitVV(){const cv=$('#cv');if(!cv)return;const v=window.visualViewport;
+  if(!v){cv.style.height='';return}
+  cv.style.height=v.height+'px';cv.style.transform=v.offsetTop?`translateY(${v.offsetTop}px)`:'';
+  const kb=window.innerHeight-v.height>120;if(kb!==cv.classList.contains('kb')){cv.classList.toggle('kb',kb);if(kb)setTimeout(()=>chatScroll('bottom'),50)}}
+if(window.visualViewport){visualViewport.addEventListener('resize',fitVV);visualViewport.addEventListener('scroll',fitVV)}
+function lockPage(on){document.documentElement.classList.toggle('locked',!!on)}
+function chatInput(){const t=$('#cIn');if(!t)return;t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px';const b=$('#cvSend');if(b)b.disabled=(S.screen==='role'?R.busy:FB.busy)||!t.value.trim()}
+function sendCurrent(){const t=$('#cIn');if(!t)return;const v=t.value.trim();if(!v)return;
+  if(S.screen==='role'){if(R.busy)return;t.value='';chatInput();roleTurn(v)}else{if(FB.busy)return;t.value='';chatInput();freeTurn(v)}}
+
+/* ===================== assistant access: Claude inside the app, or your own API key on the phone ===================== */
+function aiKey(){try{const a=JSON.parse(localStorage.getItem('oyna.ai')||'null');if(a&&a.key)return a.key;const b=JSON.parse(localStorage.getItem('silat.ai')||'null');return b&&b.key||''}catch{return ''}}
+function setAiKey(k){try{localStorage.setItem('oyna.ai',JSON.stringify({key:k}))}catch{}}
+function apiShim(){
+  const call=async(messages,opts={})=>{
+    if(!navigator.onLine){const e=new Error('offline');e.code='offline';throw e}
+    const model=opts.modelTier==='quick'?'claude-haiku-5-5':'claude-sonnet-5-5';
+    let r;try{r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':aiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:1500,messages})})}catch{const e=new Error('network');e.code='offline';throw e}
+    let j=null;try{j=await r.json()}catch{}
+    if(!r.ok){const m=j&&j.error&&j.error.message||'';const e=new Error(m);e.code=r.status===401?'bad_key':r.status===429?'rate_limited':/credit|balance/i.test(m)?'no_credit':r.status>=500?'busy':'api_error';throw e}
+    return (j.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim()};
+  const toMsgs=input=>typeof input==='string'?[{role:'user',content:input}]:input;
+  const f=async(input,opts)=>({text:await call(toMsgs(input),opts)});
+  f.json=async(input,opts)=>{const m=toMsgs(input);const last=m[m.length-1];const msgs=[...m.slice(0,-1),{role:'user',content:last.content+'\n\nRespond with the JSON object only: no prose, no code fences.'}];
+    const t=await call(msgs,opts);const s=t.indexOf('{'),e=t.lastIndexOf('}');return JSON.parse(s>=0?t.slice(s,e+1):t)};
+  f.limits=async()=>({});return f}
+function aiErr(e){const c=e&&e.code;return c==='not_granted'?'لم يُسمح للتطبيق بسؤال Claude. اسمح بذلك من أذونات الصفحة.':c==='rate_limited'?'طلبات كثيرة في وقت قصير. انتظر دقيقة وأعد المحاولة.':c==='bad_key'?'مفتاح API غير صحيح. راجعه من «التقدّم» ← المساعد الذكي.':c==='no_credit'?'رصيدك في Anthropic نفد. أضف رصيدًا من console.anthropic.com.':c==='offline'?'لا يوجد اتصال بالإنترنت. الألعاب تعمل دونه، والمحادثة تحتاجه.':c==='busy'?'الخدمة مشغولة الآن. أعد المحاولة بعد قليل.':(e&&e.text?e.text:'تعذّر الرد، حاول مرة أخرى.')}
+function aiMissingBanner(){if(!S.aiChecked||S.ai)return '';
+  return hasClaude()?'<div class="banner">المحادثة تعمل حين تسمح للتطبيق بسؤال Claude من أذونات الصفحة.</div>':`<div class="banner">لتعمل المحادثة على هذا الجهاز أضف مفتاح Anthropic API مرة واحدة. <button class="link" data-act="tab" data-to="me" style="font-size:14px;font-weight:600">إعداد المساعد</button></div>`}
+
+/* ===================== roleplay turn ===================== */
+async function roleTurn(text){
+  if(!S.ai){toast(S.aiChecked?'أضف مفتاح المساعد من «التقدّم»':'لحظة، المساعد يستعد…');return}
+  if(text)R.msgs.push({r:'me',t:text});R.busy=true;R.hints=[];render();chatScroll('bottom');
+  const sc=R.sc;const hist=R.msgs.map(m=>m.r==='me'?'Learner: '+m.t:'You: '+m.tr).join('\n');
+  const prompt=`You are role-playing to help an Arabic-speaking adult (Yemeni, lives in Istanbul, beginner-intermediate Turkish, A2) practice spoken Turkish.
+Character you play: ${sc.who}. Scene: ${sc.d}. The learner's goal (in Arabic): ${sc.goal}.
+Rules:
+- "tr": reply ONLY in natural, simple Istanbul Turkish (A2), 1-2 short sentences, staying in character, moving the conversation toward the learner's goal.
+- "ar": accurate Arabic translation of "tr".
+- If the learner wrote in Arabic, understand it, reply in Turkish, and in "fix" show how to say what they meant in Turkish.
+- If the learner's Turkish had a real mistake, "fix" = {better: corrected Turkish sentence, why: one short Arabic sentence}. Otherwise null. Don't nitpick capitals, punctuation or missing Turkish letters.
+- "hints": 2-3 short Turkish replies the learner could say next (A2, useful for the goal), each with its Arabic meaning.
+- "done": true once the learner has clearly achieved the goal.
+Conversation so far:
+${hist}
+Return JSON only: {"tr": string, "ar": string, "fix": {"better": string, "why": string} | null, "hints": [{"tr": string, "ar": string}], "done": boolean}`;
+  try{const r=await S.ai.json(prompt,{modelTier:'default'});
+    R.msgs.push({r:'them',tr:String(r.tr||'...'),ar:String(r.ar||''),fix:r.fix&&r.fix.better?{better:String(r.fix.better),why:String(r.fix.why||'')}:null});
+    R.hints=Array.isArray(r.hints)?r.hints.slice(0,3).map(normHint):[];
+    if(text)gain(r.fix?3:6);
+    if(r.done&&!R.done){R.done=true;gain(30);toast('أنجزت المهمة! +30')}
+    save();if(ttsReady)speak(String(r.tr||''));
+  }catch(e){R.msgs.push({r:'them',tr:'',ar:aiErr(e)})}
+  R.busy=false;render();chatScroll('reply');
+}
+function roleTurnHints(){const H={simit:[['İki simit lütfen.','سميطتان من فضلك.'],['Bir de çay alabilir miyim?','وهل آخذ شايًا أيضًا؟'],['Ne kadar?','كم السعر؟']],
+  taxi:[["Kadıköy'e lütfen.",'إلى قاضي كوي من فضلك.'],['Ne kadar tutar?','كم تكلّف؟'],['Burada durabilir misiniz?','هل يمكنك التوقف هنا؟']],
+  pharm:[['Başım ağrıyor.','رأسي يؤلمني.'],['Ağrı kesici var mı?','هل يوجد مسكّن؟'],['Günde kaç tane?','كم حبة في اليوم؟']],
+  landlord:[['Kombi çalışmıyor.','السخّان لا يعمل.'],['Ne zaman tamir edilir?','متى يُصلَح؟'],['Kira ne kadar olacak?','كم سيصبح الإيجار؟']],
+  work:[['Merhaba, ben Kamal.','مرحبًا، أنا كمال.'],['Gazeteciyim.','أنا صحفي.'],['Ekip kaç kişi?','كم شخصًا في الفريق؟']],
+  neighbor:[['Evet, yeni taşındık.','نعم، انتقلنا حديثًا.'],['Teşekkür ederim.','شكرًا لكِ.'],['Mahalle çok güzel.','الحي جميل جدًا.']]}[R.sc.id]||[];
+  R.hints=H.map(([tr,ar])=>({tr,ar}));render()}
+
+/* ===================== free chat turn ===================== */
+async function freeTurn(text){
+  if(!S.ai){toast(S.aiChecked?'أضف مفتاح المساعد من «التقدّم»':'لحظة، المساعد يستعد…');return}
+  const f=freeState();f.msgs.push({r:'me',t:text});FB.busy=true;FB.hints=[];render();chatScroll('bottom');
+  const hist=f.msgs.slice(-24).map(m=>m.r==='me'?'Kamal: '+m.t:'Deniz: '+(m.tr||'')+(m.tr?'':' [explained in Arabic: '+String(m.ar||'').slice(0,200)+']')).join('\n');
+  const prompt=`You are Deniz, a warm, witty and well-read friend from Istanbul (late 30s). You are chatting with Kamal, a Yemeni journalist who lives in Istanbul and is learning Turkish. His level: ${f.level}.
+Have a genuine, intelligent, two-way conversation about anything he likes — daily life, Istanbul, food, work, culture, history, ideas, news. Be curious: react to what he says, share a short opinion or story of your own, and usually end with one natural follow-up question. On contested political topics stay balanced and respectful.
+Language level rules: ${LEVEL_RULES[f.level]}
+Teaching rules:
+- "tr": your reply in Turkish only (1-3 sentences). Never mix Arabic into "tr".
+- "ar": an accurate Arabic translation of "tr".
+- If Kamal writes in Arabic or mixes Arabic, understand him, answer in Turkish, and put in "fix" how to say his message naturally in Turkish.
+- If Kamal asks a question ABOUT the language in Arabic (meaning of a word, grammar, difference between words, "how do I say..."), then "ar" is a clear, short Arabic explanation with 1-2 Turkish examples, and "tr" is one short Turkish line to continue the chat (or "" if not natural).
+- "fix": only when his Turkish has a real mistake (grammar, wrong word, suffix/vowel harmony). better = the corrected sentence; why = one short Arabic sentence. Ignore missing capitals, punctuation and missing Turkish letters (s for ş, i for ı...). Otherwise null.
+- "words": 0-3 words or short phrases from YOUR "tr" reply that are probably new for a ${f.level} learner, each with its Arabic meaning, in dictionary form when possible.
+- "hints": 2-3 short Turkish things Kamal could reply next, at his level, each with its Arabic meaning.
+Conversation so far:
+${hist}
+Return JSON only: {"tr": string, "ar": string, "fix": {"better": string, "why": string} | null, "words": [{"tr": string, "ar": string}], "hints": [{"tr": string, "ar": string}]}`;
+  try{const r=await S.ai.json(prompt,{modelTier:'default'});
+    const m={r:'them',tr:String(r.tr||''),ar:String(r.ar||''),fix:r.fix&&r.fix.better?{better:String(r.fix.better),why:String(r.fix.why||'')}:null,words:Array.isArray(r.words)?r.words.filter(w=>w&&w.tr&&w.ar).slice(0,3).map(w=>({tr:String(w.tr),ar:String(w.ar)})):[]};
+    f.msgs.push(m);FB.hints=Array.isArray(r.hints)?r.hints.slice(0,3).map(normHint):[];
+    gain(m.fix?2:4);if(ttsReady&&m.tr)speak(m.tr);
+  }catch(e){f.msgs.push({r:'them',tr:'',ar:aiErr(e)})}
+  f.msgs=f.msgs.slice(-60);FB.busy=false;save();render();chatScroll('reply');
+}
+
+/* ===================== Yarışma: a Kahoot-style timed quiz against rival players ===================== */
+const KPACE=[['calm','مريح',1.6,0],['normal','عادي',1.25,2.4],['fast','سريع',1,1.7]];
+const kPace=()=>KPACE.find(p=>p[0]===(P.khPace||'calm'))||KPACE[0];
+const KMODES=[['mix','منوّع'],['words','كلمات'],['bridges','جسور عربية'],['grammar','قواعد'],['sentences','جمل']];
+const KSHAPE=[
+ '<svg viewBox="0 0 32 32"><path d="M16 4L29 27H3z" fill="#fff"/></svg>',
+ '<svg viewBox="0 0 32 32"><path d="M16 2L30 16 16 30 2 16z" fill="#fff"/></svg>',
+ '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#fff"/></svg>',
+ '<svg viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" fill="#fff"/></svg>'];
+const KBOTS=[['Ayşe','#E86B8E'],['Mehmet','#4FB3E0'],['Zeynep','#D9A53A'],['Emre','#2FB39A']];
+let K=null;
+/* ---- sounds (Web Audio, starts on the Başla tap) ---- */
+let AC=null;
+function tone(f,d,type='sine',v=.12,at=0){if(!AC||P.sfx===false)return;try{const t=AC.currentTime+at;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch{}}
+const sfx={tick:()=>tone(1200,.05,'square',.04),beep:()=>tone(520,.18,'triangle',.15),go:()=>tone(880,.3,'triangle',.18),
+ ok:()=>{tone(523,.12,'triangle',.15);tone(659,.12,'triangle',.15,.1);tone(784,.25,'triangle',.15,.2)},bad:()=>tone(150,.4,'sawtooth',.08)};
+/* ---- questions ---- */
+function uniq4(ans,list){const out=[ans];for(const x of list){if(x&&!out.includes(x))out.push(x);if(out.length===4)break}return shuffle(out)}
+function kWord(){const v=VOCAB[Math.random()*VOCAB.length|0];
+  return Math.random()<.5?{title:'Ne demek? · ماذا تعني؟',big:v.tr,bigTr:1,opts:uniq4(v.ar,arDistract(v).map(x=>x.ar)),ans:v.ar,say:v.tr,word:v.tr,why:v.note,T:20}
+   :{title:'Türkçesi ne? · كيف تقولها بالتركية؟',big:v.ar,opts:uniq4(v.tr,arDistract(v).map(x=>x.tr)),ans:v.tr,optsTr:1,say:v.tr,word:v.tr,why:v.note,T:20}}
+function kBridge(){const b=BRIDGES[Math.random()*BRIDGES.length|0];
+  if(Math.random()<.4){const trap=(b.note.match(/«([^»]+)»/)||[])[1];const truth=Math.random()<.5||b.kind!=='shift'||!trap||trap===b.ar;
+    const shown=truth?b.ar:trap;return {title:'Doğru mu? · صح أم خطأ؟',big:b.tr,bigTr:1,sub:'= '+shown,tf:1,opts:['صح','خطأ'],ans:truth?'صح':'خطأ',say:b.tr,why:b.note,T:12}}
+  return {title:'Ne demek? · ماذا تعني بالتركية؟',big:b.tr,bigTr:1,opts:uniq4(b.ar,shuffle(BRIDGES.filter(x=>x.ar!==b.ar)).map(x=>x.ar)),ans:b.ar,say:b.tr,why:b.note,T:18}}
+function kHarmony(){for(let g=0;g<50;g++){const w=NOUNS[Math.random()*NOUNS.length|0];const sx=SUFX[Math.random()*SUFX.length|0];if(!sx.ok(w))continue;const ans=sx.make(w);
+  let opts=[...new Set(sx.opts(w))];if(!opts.includes(ans))opts.push(ans);if(opts.length===3)opts.push(...variants(ans).filter(x=>!opts.includes(x)).slice(0,1));
+  return {title:'Hangisi doğru? · أيّها الصحيح؟',big:w+' + '+sx.ar,bigTr:0,sub:NOUN_AR[w]||'',opts:shuffle(opts.slice(0,4)),ans,optsTr:1,say:ans,why:harmonyWhy(w,sx),whyHtml:1,T:15}}}
+function kCloze(){const s=SENTS[Math.random()*SENTS.length|0];const toks=s.tr.split(' ');const cand=toks.map((t,i)=>[t.replace(/[.,?!]/g,''),i]).filter(([t])=>t.length>=3&&!/'/.test(t));const [ans,idx]=cand[Math.random()*cand.length|0];
+  const others=shuffle(SENTS.flatMap(x=>x.tr.split(' ').map(t=>t.replace(/[.,?!]/g,''))).filter(t=>t.length>=3&&t!==ans&&!/'/.test(t)));
+  const big=toks.map((t,i)=>i===idx?'＿＿＿'+(t.match(/[.,?!]+$/)?.[0]||''):t).join(' ');
+  return {title:'Boşluğu doldur · أكمل الفراغ',big,bigTr:1,small:1,sub:s.ar,opts:uniq4(ans,[...shuffle(variants(ans)).slice(0,2),...others]),ans,optsTr:1,say:s.tr,full:s.tr,T:25}}
+function kSentence(){const s=SENTS[Math.random()*SENTS.length|0];
+  return {title:'Ne demek? · ما معنى الجملة؟',big:s.tr,bigTr:1,small:1,opts:uniq4(s.ar,shuffle(SENTS.filter(x=>x!==s)).map(x=>x.ar)),ans:s.ar,say:s.tr,T:25}}
+function kBuild(mode){const gen={words:[kWord],bridges:[kBridge],grammar:[kHarmony,kHarmony,kCloze],sentences:[kSentence,kCloze],mix:[kWord,kWord,kBridge,kHarmony,kCloze,kSentence]}[mode];
+  const qs=[],seen=new Set();let g=0;while(qs.length<10&&g++<200){const q=gen[Math.random()*gen.length|0]();if(!q||seen.has(q.big+q.sub))continue;seen.add(q.big+q.sub);qs.push(q)}return qs}
+/* ---- flow ---- */
+const kPts=(ok,ms,T,streak)=>ok?Math.round(1000*(1-(ms/(T*1000))/2))+(streak>=2?Math.min(streak-1,5)*100:0):0;
+function kNew(){const mode=P.khMode||'mix';
+  K={phase:'lobby',mode,players:[{name:'Sen',me:1,color:'#fff',score:0,streak:0},...KBOTS.map(([n,c])=>({name:n,color:c,skill:.48+Math.random()*.38,score:0,streak:0}))]}}
+function kStart(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume()}catch{}
+  const pc=kPace();K.qs=kBuild(K.mode).map(q=>({...q,T:Math.round(q.T*pc[2])}));K.readMs=pc[3]*1000;K.i=-1;K.right=0;K.best=0;K.missed=[];K.players.forEach(p=>{p.score=0;p.streak=0;p.prev=0});K.phase='count';K.n=3;render();sfx.beep();
+  K.to=setInterval(()=>{K.n--;if(K.n>0){render();sfx.beep()}else{clearInterval(K.to);sfx.go();kNext()}},800)}
+function kNext(){K.i++;if(K.i>=K.qs.length){kFinish();return}
+  const q=K.qs[K.i];K.pick=null;K.res=null;K.phase='read';if(ttsReady&&q.bigTr&&!q.small)speak(q.big);
+  const pc=kPace();K.manual=false;const len=(q.big+(q.sub||'')).length;
+  K.readMs=pc[0]==='fast'?1700:pc[0]==='normal'?Math.max(2600,1600+len*75):Math.max(5000,2500+len*150);
+  render();K.to=setTimeout(kBegin,K.readMs)}
+function kBegin(){clearTimeout(K.to);if(!K||K.phase!=='read')return;const q=K.qs[K.i];K.phase='answer';K.t0=performance.now();
+  K.botT=K.players.filter(p=>!p.me).map(p=>{const ok=Math.random()<p.skill;return {p,ok,ms:(.18+Math.random()*.62)*q.T*1000*(ok?1:1.15)}});
+  render();K.lastSec=null;K.tm=setInterval(kTick,100)}
+function kTick(){const q=K.qs[K.i];const ms=performance.now()-K.t0;const left=Math.max(0,q.T-ms/1000);
+  const n=K.botT.filter(b=>b.ms<=ms).length;const el=$('#ktime');if(el)el.textContent=Math.ceil(left);const an=$('#kansN');if(an)an.textContent=n+(K.pick!==null?1:0);
+  const bar=$('#kbar');if(bar)bar.style.width=(left/q.T*100)+'%';
+  const s=Math.ceil(left);if(s<=5&&s>0&&s!==K.lastSec){K.lastSec=s;sfx.tick()}
+  if(left<=0)kReveal(null)}
+function kAnswer(k){if(K.phase!=='answer'||K.pick!==null)return;K.pick=k;kReveal(k)}
+function kReveal(k){clearInterval(K.tm);const q=K.qs[K.i];const ms=Math.min(performance.now()-K.t0,q.T*1000);
+  const me=K.players[0];const ok=k!==null&&q.opts[k]===q.ans;
+  K.players.forEach(p=>p.prev=p.score);
+  me.streak=ok?me.streak+1:0;const gainMe=kPts(ok,ms,q.T,me.streak);me.score+=gainMe;
+  for(const b of K.botT){b.p.streak=b.ok?b.p.streak+1:0;b.p.score+=kPts(b.ok,Math.min(b.ms,q.T*1000),q.T,b.p.streak)}
+  if(ok){K.right++;K.best=Math.max(K.best,me.streak)}else{K.missed.push(q.word||q.say||q.ans);if(q.word)srsBad(q.word)}
+  K.res={ok,timeout:k===null,pts:gainMe};K.phase='reveal';render();ok?sfx.ok():sfx.bad();if(ttsReady&&q.say)setTimeout(()=>speak(q.say),350)}
+function kFinish(){K.phase='podium';const me=K.players[0];
+  K.rank=[...K.players].sort((a,b)=>b.score-a.score).indexOf(me)+1;
+  K.xp=Math.round(me.score/250)+K.right*2+(K.rank===1?15:K.rank===2?8:K.rank===3?4:0);gain(K.xp);
+  P.best=P.best||{};const key='kh_'+K.mode;K.record=me.score>(P.best[key]||0);if(K.record)P.best[key]=me.score;save();render();if(K.rank<=3)sfx.ok()}
+function kQuit(){clearInterval(K&&K.tm);clearInterval(K&&K.to);clearTimeout(K&&K.to);K=null;lockPage(false);S.screen=S.lastTab||'home';render();window.scrollTo(0,0)}
+/* ---- screens ---- */
+const kAv=(p,s=34)=>`<span class="kav" style="width:${s}px;height:${s}px;background:${p.me?'#fff':p.color};color:${p.me?'#46178F':'#fff'}">${esc(p.name[0])}</span>`;
+function kBoard(){const max=Math.max(1,...K.players.map(p=>p.score));const ord=[...K.players].sort((a,b)=>b.score-a.score);
+  return `<div class="klb">${ord.map((p,i)=>`<div class="kr ${p.me?'me':''}"><span class="kn">${i+1}</span>${kAv(p,28)}<span class="knm">${esc(p.name)}</span><span class="kbarw"><i style="width:${Math.max(3,p.score/max*100)}%"></i></span><span class="ksc">${p.score}</span></div>`).join('')}</div>`}
+function vKahoot(){
+  const head=(extra='')=>`<div class="khtop"><button class="khx" data-act="kQuit" aria-label="إغلاق">${ICON.x}</button>${extra}</div>`;
+  if(K.phase==='lobby'){const best=(P.best||{})['kh_'+K.mode]||0;
+    return `<div class="kh" id="kh">${head(`<span class="kgrow"></span><button class="kpill" data-act="kSfx">${P.sfx===false?'الصوت: مطفأ':'الصوت: يعمل'}</button>`)}
+     <div class="klobby"><div class="klogo">Yarışma!</div><p class="ksub">عشرة أسئلة بالوقت ضد أربعة منافسين. كلما أجبت أسرع ربحت نقاطًا أكثر، والإجابات المتتالية تضاعف المكافأة.</p>
+      <div class="kchips">${KMODES.map(([k,l])=>`<button class="kchip" data-act="kMode" data-v="${k}" aria-pressed="${K.mode===k}">${l}</button>`).join('')}</div>
+      <div class="kchips"><span style="opacity:.85;font-size:14px;align-self:center">الوقت:</span>${KPACE.map(([k,l])=>`<button class="kchip" data-act="kPace" data-v="${k}" aria-pressed="${(P.khPace||'calm')===k}">${l}</button>`).join('')}</div>
+      <div class="kplayers">${K.players.map(p=>`<div class="kpl">${kAv(p,44)}<span>${esc(p.name)}</span></div>`).join('')}</div>
+      ${best?`<p class="ksub" style="margin:0">أفضل نتيجة لك هنا: <b class="num">${best}</b></p>`:''}
+     </div><div class="kfoot"><button class="kgo" data-act="kStart">Başla · ابدأ</button></div></div>`}
+  if(K.phase==='count')return `<div class="kh" id="kh">${head()}<div class="kcount"><div class="kspin"><span>${K.n}</span></div><p>${esc(KMODES.find(m=>m[0]===K.mode)[1])}</p></div></div>`;
+  const q=K.qs[K.i];const hdr=head(`<span class="kq-n">${K.i+1} / ${K.qs.length}</span><span class="kgrow"></span><span class="kpill num">${K.players[0].score}</span>`);
+  const qcard=(big)=>`<div class="kq ${big?'bigq':''}"><div class="ttl">${esc(q.title)}</div><div class="big ${q.bigTr?'tr':''} ${q.small?'sm':''}">${esc(q.big)}</div>${q.sub?`<div class="sub ${q.tf?'tfsub':''}">${esc(q.sub)}</div>`:''}</div>`;
+  if(K.phase==='read')return `<div class="kh" id="kh">${hdr}<div class="kread">${qcard(1)}${K.manual?`<div class="kreadgo">${ttsReady&&q.bigTr?`<button class="kpill" data-act="say" data-t="${esc(q.say||q.big)}">استمع</button>`:''}<button class="kgo" data-act="kBegin">Hazırım · أظهر الخيارات</button><p>خذ وقتك في القراءة. يبدأ المؤقت حين تضغط.</p></div>`:`<div class="kreadbar"><i style="animation-duration:${(K.readMs||3200)/1000}s"></i></div>`}</div></div>`;
+  if(K.phase==='answer'){const tf=q.tf;
+    return `<div class="kh" id="kh">${hdr}${qcard(0)}<div class="kmid"><div class="ktimer"><b id="ktime">${q.T}</b></div><div class="kans"><b id="kansN">0</b><span>Cevap</span></div></div>
+     <div class="ktbar"><i id="kbar" style="width:100%"></i></div>
+     <div class="ktiles ${tf?'tf':''} n${q.opts.length}">${q.opts.map((o,k)=>{const c=tf?(k===0?1:0):k;return `<button class="kt k${c}" data-act="kAns" data-k="${k}">${KSHAPE[c]}<span class="${q.optsTr?'tr':''}">${esc(o)}</span></button>`}).join('')}</div></div>`}
+  if(K.phase==='reveal'){const r=K.res,me=K.players[0];const rank=[...K.players].sort((a,b)=>b.score-a.score).indexOf(me)+1;
+    return `<div class="kh ${r.ok?'ok':'bad'}" id="kh">${hdr}<div class="krev">
+      <div class="kverdict">${r.ok?'Doğru!':r.timeout?'Süre doldu':'Yanlış'}</div><div class="kverdict-ar">${r.ok?'إجابة صحيحة':r.timeout?'انتهى الوقت':'إجابة خاطئة'}</div>
+      ${r.ok?`<div class="kplus">+${r.pts}</div>`:''}${me.streak>=2?`<div class="kstreak">${ICON.flame} Seri ${me.streak} · ${me.streak} متتالية</div>`:''}
+      <div class="kanswer"><div class="lbl">الإجابة الصحيحة</div><div class="${q.optsTr?'tr':''} val">${esc(q.ans)}</div>${q.full?`<div class="tr full">${esc(q.full)}</div>`:''}${q.why?`<div class="why">${q.whyHtml?q.why:esc(q.why)}</div>`:''}${ttsReady&&q.say?`<button class="kpill" data-act="say" data-t="${esc(q.say)}" style="margin-top:8px">استمع</button>`:''}</div>
+      <p class="krank">أنت في المركز <b>${rank}</b> من ${K.players.length}</p>${kBoard()}
+     </div><div class="kfoot"><button class="kgo" data-act="kNext">${K.i<K.qs.length-1?'Sonraki · التالي':'Sonuçlar · النتائج'}</button></div></div>`}
+  if(K.phase==='podium'){const ord=[...K.players].sort((a,b)=>b.score-a.score);const me=K.players[0];const pod=[ord[1],ord[0],ord[2]];const H=[62,82,48];
+    return `<div class="kh" id="kh">${head()}<div class="krev">
+      <div class="kverdict">${K.rank===1?'Birinci oldun!':K.rank<=3?'Podyumdasın!':'İyi oyun!'}</div><div class="kverdict-ar">${K.rank===1?'أنت الأول!':'أنت في المركز '+K.rank+' من '+K.players.length}${K.record?' · رقم قياسي جديد':''}</div>
+      <div class="kpod">${pod.map((p,i)=>`<div class="kcol ${p.me?'me':''}">${kAv(p,46)}<b>${esc(p.name)}</b><span class="num">${p.score}</span><div class="kstep" style="height:${H[i]}px">${[2,1,3][i]}</div></div>`).join('')}</div>
+      <div class="kstats"><div><b class="num">${K.right}/${K.qs.length}</b><span>صحيحة</span></div><div><b class="num">${K.best}</b><span>أطول سلسلة</span></div><div><b class="num">+${K.xp}</b><span>نقطة خبرة</span></div></div>
+      ${K.missed.length?`<div class="kanswer"><div class="lbl">راجع هذه</div><div class="tr" style="font-size:16px">${K.missed.slice(0,8).map(esc).join(' · ')}</div></div>`:''}
+     </div><div class="kfoot two"><button class="kgo ghost" data-act="kQuit">Bitir · إنهاء</button><button class="kgo" data-act="kAgain">Tekrar · مرة أخرى</button></div></div>`}
+  return ''}
+
+/* ===================== interactions ===================== */
+function answer(correct,word){const it=G.items[G.i];
+  if(correct){G.ok++;G.combo++;G.best=Math.max(G.best,G.combo);const pts=10+(G.combo>=5?5:G.combo>=3?2:0);G.xp+=pts;G.state='ok';if(word&&(G.type==='review'||G.type==='learnquiz'))srsGood(word)}
+  else{G.combo=0;G.state='bad';if(word&&(G.type==='review'))srsBad(word);G.missed.push(word||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''))||it.answer)}
+  render();if(correct&&it.say&&ttsReady&&!it.autoSay)speak(it.say)}
+function next(){G.i++;G.state='q';G.sel=[];G.pick=null;
+  if(G.i>=G.items.length){if(G.ok===G.items.length)G.xp+=20;gain(G.xp);
+    if(G.type==='learnquiz'){L.words.forEach(v=>{if(!P.srs[v.tr])P.srs[v.tr]={b:1,d:addDays(today(),1)}})}
+    save();S.screen='end';render();window.scrollTo(0,0);return}
+  render();window.scrollTo(0,0);autoSay()}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
+  switch(a){
+   case 'home':case 'back':S.screen=S.lastTab||'home';G=null;render();window.scrollTo(0,0);break;
+   case 'tab':S.screen=el.dataset.to;render();window.scrollTo(0,0);break;
+   case 'go':start(el.dataset.g);break;
+   case 'goal':P.goal=+el.dataset.v;save();render();break;
+   case 'rate':P.rate=+el.dataset.v||.9;save();speak('Merhaba, nasılsın?');render();break;
+   case 'say':speak(el.dataset.t);break;
+   case 'slow':speak(el.dataset.t,.6);break;
+   case 'learnCat':{const c=el.dataset.c;let ws=VOCAB.filter(v=>v.cat===c&&!P.srs[v.tr]);if(!ws.length){ws=pick(VOCAB.filter(v=>v.cat===c),6);toast('أتممت هذا الموضوع، هذه مراجعة')}L={cat:c,words:ws.slice(0,6),i:0};S.screen='learn';render();if(ttsReady)speak(L.words[0].tr);break}
+   case 'learnNext':if(L.i<L.words.length-1){L.i++;render();if(ttsReady)speak(L.words[L.i].tr)}else{G={type:'learnquiz',items:makeItems('learnquiz',L.words),i:0,ok:0,xp:0,combo:0,state:'q',sel:[],t0:Date.now(),missed:[]};S.screen='play';render()}break;
+   case 'ans':{if(G.state!=='q')return;const it=G.items[G.i];const o=it.options[+el.dataset.k];G.pick=o;answer(o===it.answer,it.word);break}
+   case 'sel':{const i=+el.dataset.i;if(G.state!=='q'||G.sel.includes(i))return;G.sel.push(i);render();break}
+   case 'unsel':{if(G.state!=='q')return;G.sel.splice(+el.dataset.k,1);render();break}
+   case 'check':{const it=G.items[G.i];if(it.kind==='order'){const got=G.sel.map(i=>it.toks[i].t).join(' ');answer(got===it.s.tr)}else{const got=G.sel.map(i=>it.blocks[i].t).join('');answer(got===it.b.p.join(''))}break}
+   case 'ml':case 'mr':{const it=G.items[G.i],m=it.state;const v=el.dataset.v;if(a==='ml'){m.a=v;if(ttsReady)speak(v)}else m.b=v;
+     if(m.a&&m.b){const p=it.pairs.find(x=>x.tr===m.a);if(p&&p.ar===m.b){m.done.push(m.a);G.combo++;G.xp+=4}else{G.combo=0;m.miss=1;G.missed.push(m.a);const sel=document.querySelectorAll('.mi.sel');sel.forEach(x=>x.classList.add('bad'));m.a=m.b=null;setTimeout(render,350);return}m.a=m.b=null;
+       if(m.done.length===it.pairs.length){if(!m.miss)G.ok++;setTimeout(next,250)}}
+     render();break}
+   case 'next':next();break;
+   case 'aiwhy':aiWhy();break;
+   case 'quit':if(G&&G.xp){gain(Math.round(G.xp/2));save()}S.screen=S.lastTab||'home';G=null;render();break;
+   case 'again':start(G.type==='learnquiz'?'learn':G.type);break;
+   case 'scene':{const sc=SCENES.find(s=>s.id===el.dataset.id);R={sc,msgs:[{r:'them',tr:sc.open,ar:sc.openAr||''}],hints:[],done:false,busy:false};S.screen='role';roleTurnHints();if(ttsReady)speak(sc.open);break}
+   case 'showAr':{const m=(S.screen==='role'?R.msgs:freeState().msgs)[+el.dataset.i];m.showAr=true;if(!m.ar){m.ar='…';render();translate(m)}else render();break}
+   case 'hint':{const t=$('#cIn');t.value=el.dataset.t;chatInput();t.focus();break}
+   case 'cSend':sendCurrent();break;
+   case 'free':S.screen='free';render();break;
+   case 'freeEnd':S.screen='talk';render();window.scrollTo(0,0);break;
+   case 'freeClear':freeState().msgs=[];FB.hints=[];save();render();break;
+   case 'freeLevel':freeState().level=el.dataset.v;save();render();break;
+   case 'freeStart':{const st=STARTERS[+el.dataset.i];if(st[1].startsWith('كيف')){const t=$('#cIn');t.value=st[1];chatInput();t.focus()}else freeTurn(st[1]);break}
+   case 'addWord':{const w=freeState().msgs[+el.dataset.i].words[+el.dataset.k];P.custom[w.tr]=w.ar;applyCustom();if(!P.srs[w.tr])P.srs[w.tr]={b:1,d:addDays(today(),1)};save();render();toast('أُضيفت لمراجعتك');break}
+   case 'kStart':kStart();break;
+   case 'kQuit':kQuit();break;
+   case 'kMode':P.khMode=el.dataset.v;K.mode=el.dataset.v;save();render();break;
+   case 'kBegin':kBegin();break;
+   case 'kPace':P.khPace=el.dataset.v;save();render();break;
+   case 'kSfx':P.sfx=P.sfx===false;save();render();break;
+   case 'kAns':kAnswer(+el.dataset.k);break;
+   case 'kNext':kNext();break;
+   case 'kAgain':kNew();kStart();break;
+   case 'showTr':P.showTr=el.dataset.v==='1';save();render();break;
+   case 'sfxSet':P.sfx=el.dataset.v==='1';save();render();break;
+   case 'keySave':{const v=($('#keyIn').value||'').trim();setAiKey(v);S.ai=v?apiShim():null;const m=$('#keyMsg');if(!v){if(m)m.textContent='أُزيل المفتاح.';break}if(m)m.textContent='جارٍ الاختبار…';S.ai('Reply with the single word: OK',{modelTier:'quick'}).then(()=>{const x=$('#keyMsg');if(x)x.textContent='يعمل. المساعد مفعّل.'}).catch(err=>{const x=$('#keyMsg');if(x)x.textContent=aiErr(err)});break}
+   case 'expP':{const o=JSON.parse(JSON.stringify(P));o.free={level:(P.free&&P.free.level)||'A2',msgs:[]};copy(JSON.stringify(o));break}
+   case 'impOpen':S.imp=!S.imp;render();break;
+   case 'impApply':{try{const o=JSON.parse(($('#impT').value||'').trim());if(typeof o.xp!=='number'||!o.srs)throw 0;P=Object.assign(JSON.parse(JSON.stringify(DEF)),o);applyCustom();save();S.imp=false;render();toast('استُورد تقدّمك')}catch{toast('الرمز غير صالح')}break}
+   case 'endRole':S.screen='talk';R=null;render();window.scrollTo(0,0);break;
+  }
+});
+document.addEventListener('keydown',e=>{if(e.target.id==='cIn'&&e.key==='Enter'&&!e.shiftKey&&matchMedia('(pointer:fine)').matches){e.preventDefault();sendCurrent()}});
+document.addEventListener('input',e=>{if(e.target.id==='cIn')chatInput()});
+document.addEventListener('focusin',e=>{if(e.target.id==='cIn')setTimeout(()=>{fitVV();chatScroll('bottom')},350)});
+async function translate(m){if(!S.ai){m.ar='الترجمة تحتاج Claude';render();return}try{const r=await S.ai(`Translate this Turkish sentence into natural Arabic. Reply with the translation only: ${m.tr}`,{modelTier:'quick'});m.ar=r.text.trim()}catch{m.ar='تعذّرت الترجمة'}render()}
+
+
+initStore();
+</script>
+
+<script>if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
+</body>
+</html>
