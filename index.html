@@ -405,7 +405,8 @@ body{background:var(--bg)}
 
 <script>
 /* ===================== data ===================== */
-const CATS={greet:'تحيات وأساسيات',cafe:'المقهى والطعام',transport:'المواصلات',market:'السوق والشراء',home:'البيت والسكن',work:'العمل',time:'الوقت والأرقام',verbs:'أفعال يومية',people:'الناس والعائلة',city:'المدينة'};
+const CATS={greet:'تحيات وأساسيات',qwords:'أدوات السؤال والربط',cafe:'المقهى والطعام',transport:'المواصلات',market:'السوق والشراء',home:'البيت والسكن',work:'العمل والإعلام',time:'الوقت والأرقام',verbs:'أفعال يومية',people:'الناس والعائلة',city:'المدينة',health:'الصحة والصيدلية',body:'الجسم',clothes:'الملابس',weather:'الطقس والطبيعة',feel:'المشاعر والصفات',phone:'الهاتف والإنترنت',money:'البنك والمال',travel:'السفر والفندق',office:'الدوائر الرسمية',kitchen:'المطبخ',fruit:'الخضار والفواكه',colors:'الألوان والأشكال',hobby:'الرياضة والهوايات',school:'الدراسة والتعلّم'};
+try{Object.assign(CATS,JSON.parse(localStorage.getItem('oyna.cats')||'{}'))}catch{}
 // tr|ar|category|bridge note (optional)
 const VOCAB_RAW=`merhaba|مرحبا|greet|من «مرحبا» العربية
 selam|سلام|greet|من «سلام»
@@ -570,8 +571,763 @@ mahalle|حيّ|city|من «محلّة»
 dünya|العالم|city|من «دنيا»
 hava|الطقس؛ الهواء|city|من «هواء»، وتعني الطقس غالبًا
 yağmur|مطر|city
-güneş|شمس|city`;
+güneş|شمس|city
+hoşça kal|مع السلامة (يقولها المغادر)|greet
+güle güle|مع السلامة (يقولها المودِّع)|greet
+iyi günler|نهارك سعيد|greet
+memnun oldum|تشرّفت|greet|من «ممنون»
+efendim|نعم؟ / سيدي|greet|من «أفندي»
+buyurun|تفضّل|greet
+kusura bakmayın|لا تؤاخذني|greet|«قصور» من العربية
+inşallah|إن شاء الله|greet|من «إن شاء الله»
+maşallah|ما شاء الله|greet|من «ما شاء الله»
+elinize sağlık|سلمت يداك|greet
+çok yaşa|يرحمك الله (عند العطاس)|greet
+sen de gör|وأنت كذلك (ردًّا على العطاس)|greet
+tebrikler|مبروك|greet|من «تبريك»
+iyi yolculuklar|رحلة سعيدة|greet
+iyi şanslar|حظًا موفقًا|greet
+bir şey değil|لا شكر على واجب|greet
+anlamadım|لم أفهم|greet
+tekrar eder misiniz|هل تعيد من فضلك؟|greet|«تكرار»
+yavaş lütfen|ببطء من فضلك|greet
+Türkçe bilmiyorum|لا أعرف التركية|greet
+ne demek|ماذا يعني؟ / العفو|greet
+olur|ممكن / يصير|greet
+olmaz|لا يصير|greet
+belki|ربما|greet
+tabii|طبعًا|greet|من «طبيعي»
+peki|حسنًا إذن|greet
+hadi|هيّا|greet
+kahvaltılık|أصناف الفطور|cafe
+menü|قائمة الطعام|cafe
+sipariş|طلب (في المطعم)|cafe
+masa|طاولة|cafe
+sandalye|كرسي|cafe
+bardak|كوب|cafe
+fincan|فنجان|cafe|من «فنجان»
+tabak|صحن|cafe|من «طبق»
+çatal|شوكة|cafe
+kaşık|ملعقة|cafe
+bıçak|سكين|cafe
+peçete|منديل|cafe
+pilav|رز|cafe
+makarna|معكرونة|cafe
+köfte|كفتة|cafe
+kebap|كباب|cafe|من «كباب»
+döner|شاورما|cafe
+lahmacun|لحم بعجين|cafe
+pide|فطيرة تركية|cafe
+börek|بُرك (معجنات)|cafe
+mercimek|عدس|cafe
+salata|سلطة|cafe
+meze|مقبلات|cafe
+ayran|لبن عيران|cafe
+meyve suyu|عصير|cafe
+soda|مياه غازية|cafe
+bal|عسل|cafe
+reçel|مربّى|cafe
+tereyağı|زبدة|cafe
+yoğurt|لبن زبادي|cafe
+dondurma|بوظة / آيس كريم|cafe
+baklava|بقلاوة|cafe
+paket|سفري / علبة|cafe
+servis|خدمة|cafe
+bahşiş|بقشيش|cafe|من «بخشيش»
+aç|جائع|cafe
+tok|شبعان|cafe
+susadım|عطشت|cafe
+vejetaryen|نباتي|cafe
+helal|حلال|cafe|من «حلال»
+domuz eti|لحم خنزير|cafe
+taze|طازج|cafe|من «طازة»
+sıcak su|ماء ساخن|cafe
+buzlu|مع ثلج|cafe
+metro|مترو|transport
+tramvay|ترام|transport
+metrobüs|متروبوس|transport
+dolmuş|سيارة أجرة جماعية (دولموش)|transport
+marmaray|مرمراي (قطار تحت البحر)|transport
+istanbulkart|بطاقة المواصلات|transport
+aktarma|تبديل خط|transport
+peron|رصيف المحطة|transport
+çıkış|مخرج|transport
+giriş|مدخل|transport
+hat|خط|transport|من «خطّ»
+son durak|المحطة الأخيرة|transport
+araba|سيارة|transport|من «عربة»
+şoför|سائق|transport
+trafik|زحمة سير|transport
+kaza|حادث|transport|من «قضاء»
+park etmek|يركن السيارة|transport
+benzin|بنزين|transport
+havalimanı|مطار|transport
+uçak|طائرة|transport
+tren|قطار|transport
+gemi|سفينة|transport
+bisiklet|دراجة|transport
+yürümek|يمشي|transport
+köşe|زاوية|transport
+karşı|مقابل|transport
+arka|خلف|transport
+ön|أمام|transport
+geç kalmak|يتأخر|transport
+erken|باكرًا|transport
+kalabalık|زحمة / مزدحم|transport
+boş|فارغ|transport
+dolu|ممتلئ|transport
+kasa|الصندوق (للدفع)|market
+fiş|إيصال|market
+fiyat|سعر|market
+kart|بطاقة|market
+taksit|تقسيط|market|من «تقسيط»
+pazar|سوق شعبي|market|من «بازار»
+market|سوبرماركت|market
+bakkal|بقالة|market|من «بقّال»
+kilo|كيلو|market
+yarım|نصف|market
+tane|حبة / قطعة|market
+şişe|زجاجة|market
+kutu|علبة|market
+değiştirmek|يبدّل|market
+iade|إرجاع|market|من «إعادة»
+deneme|تجربة / قياس|market
+beden|مقاس|market|من «بدن»
+renk|لون|market|من «رنك» الفارسية
+kalite|جودة|market
+pazarlık|مفاوضة على السعر|market
+bedava|مجاني|market
+açık|مفتوح|market
+kapalı|مغلق|market
+sıra|دور / طابور|market
+kampanya|عرض تخفيضات|market
+ödemek|يدفع|market
+para üstü|الباقي (من النقود)|market
+apartman|عمارة سكنية|home
+kat|طابق|home
+asansör|مصعد|home
+merdiven|درج|home
+salon|صالة|home
+yatak odası|غرفة النوم|home
+yatak|سرير|home
+dolap|خزانة|home
+koltuk|كنبة|home
+halı|سجادة|home
+perde|ستارة|home|من «پرده»
+lamba|مصباح|home|من «لمبة»
+priz|مقبس كهرباء|home
+elektrik|كهرباء|home
+doğalgaz|غاز طبيعي|home
+kombi|سخان التدفئة|home
+çamaşır makinesi|غسالة|home
+buzdolabı|ثلاجة|home
+ocak|موقد|home
+fırın|فرن|home|من «فرن»
+tuvalet|حمّام / مرحاض|home
+duş|دوش|home
+havlu|منشفة|home
+sabun|صابون|home|من «صابون»
+çöp|قمامة|home
+balkon|شرفة|home
+bahçe|حديقة|home
+ev sahibi|صاحب البيت|home
+depozito|تأمين (عربون)|home
+taşınmak|ينتقل (من بيت)|home
+tamir|تصليح|home|من «تعمير»
+bozuk|معطّل|home
+temizlik|تنظيف|home
+eşya|أغراض / أثاث|home|من «أشياء»
+şirket|شركة|work|من «شركة»
+patron|صاحب العمل|work
+çalışan|موظف|work
+meslektaş|زميل|work|من «مسلك»
+izin|إجازة / إذن|work|من «إذن»
+mesai|دوام|work|من «مساعي»
+fazla mesai|دوام إضافي|work
+sözleşme|عقد|work
+başvuru|طلب توظيف|work
+mülakat|مقابلة عمل|work|من «ملاقاة»
+özgeçmiş|سيرة ذاتية|work
+tecrübe|خبرة|work|من «تجربة»
+proje|مشروع|work
+rapor|تقرير|work
+e-posta|بريد إلكتروني|work
+görev|مهمة|work
+sorumlu|مسؤول|work
+yardım|مساعدة|work
+kolay|سهل|work
+zor|صعب|work
+hızlı|سريع|work
+yavaş|بطيء|work
+meşgul|مشغول|work|من «مشغول»
+müsait|متاح / فاضي|work|من «مساعد»
+toplantı odası|غرفة الاجتماعات|work
+mola|استراحة|work
+istifa|استقالة|work|من «استعفاء»
+terfi|ترقية|work|من «ترفيع»
+gazeteci|صحفي|work
+muhabir|مراسل|work|من «مخبر»
+röportaj|مقابلة صحفية|work
+yayın|بث / نشر|work
+kanal|قناة|work
+makale|مقالة|work|من «مقالة»
+siyaset|سياسة|work|من «سياسة»
+seçim|انتخابات|work
+hükümet|حكومة|work|من «حكومة»
+savaş|حرب|work
+barış|سلام|work
+pazartesi|الإثنين|time
+salı|الثلاثاء|time
+çarşamba|الأربعاء|time|من «چهارشنبه» الفارسية
+perşembe|الخميس|time
+cuma|الجمعة|time|من «جمعة»
+cumartesi|السبت|time
+pazar günü|يوم الأحد|time
+hafta sonu|نهاية الأسبوع|time
+öğle|الظهر|time
+öğleden sonra|بعد الظهر|time
+gece yarısı|منتصف الليل|time
+saniye|ثانية|time|من «ثانية»
+yarım saat|نصف ساعة|time
+çeyrek|ربع|time|من «چهار يك»
+her gün|كل يوم|time
+bazen|أحيانًا|time
+her zaman|دائمًا|time|«زمان»
+hiç|أبدًا|time
+henüz|بعدُ / للتو|time
+hemen|فورًا|time
+geçen hafta|الأسبوع الماضي|time
+gelecek ay|الشهر القادم|time
+ocak ayı|كانون الثاني / يناير|time
+mevsim|فصل (من السنة)|time|من «موسم»
+yaz|صيف|time
+kış|شتاء|time
+ilkbahar|ربيع|time
+sonbahar|خريف|time
+altı|ستة|time
+yedi|سبعة|time
+sekiz|ثمانية|time
+dokuz|تسعة|time
+yirmi|عشرون|time
+otuz|ثلاثون|time
+kırk|أربعون|time
+elli|خمسون|time
+altmış|ستون|time
+yetmiş|سبعون|time
+seksen|ثمانون|time
+doksan|تسعون|time
+milyon|مليون|time
+birinci|الأول|time
+ikinci|الثاني|time
+sıfır|صفر|time|من «صفر»
+koşmak|يركض|verbs
+durmak|يقف / يتوقف|verbs
+başlamak|يبدأ|verbs
+bitirmek|ينهي|verbs
+bitmek|ينتهي|verbs
+düşünmek|يفكّر|verbs
+hatırlamak|يتذكّر|verbs|من «خاطر»
+unutmak|ينسى|verbs
+sormak|يسأل|verbs
+cevap vermek|يجيب|verbs|من «جواب»
+söylemek|يقول|verbs
+demek|يقول / يعني|verbs
+duymak|يسمع|verbs
+dinlemek|يستمع|verbs
+bakmak|ينظر|verbs
+aramak|يبحث / يتصل|verbs
+bulmak|يجد|verbs
+kaybetmek|يفقد / يخسر|verbs
+kazanmak|يربح / يكسب|verbs
+getirmek|يُحضر|verbs
+götürmek|يأخذ إلى|verbs
+göndermek|يرسل|verbs
+taşımak|يحمل / ينقل|verbs
+koymak|يضع|verbs
+çıkarmak|يُخرج / يخلع|verbs
+giymek|يلبس|verbs
+yıkamak|يغسل|verbs
+pişirmek|يطبخ|verbs
+kesmek|يقطع|verbs
+temizlemek|ينظّف|verbs
+kalkmak|ينهض|verbs
+yatmak|يستلقي / ينام|verbs
+uyanmak|يستيقظ|verbs
+dinlenmek|يرتاح|verbs
+gülmek|يضحك|verbs
+ağlamak|يبكي|verbs
+yardım etmek|يساعد|verbs
+denemek|يجرّب|verbs
+seçmek|يختار|verbs
+değişmek|يتغيّر|verbs
+kullanmak|يستعمل|verbs
+yaşamak|يعيش|verbs
+ölmek|يموت|verbs
+doğmak|يولد|verbs
+evlenmek|يتزوّج|verbs
+tanışmak|يتعرّف على|verbs
+buluşmak|يلتقي|verbs
+dönmek|يعود / يلتفّ|verbs
+kalmak|يبقى|verbs
+çıkmak|يخرج|verbs
+girmek|يدخل|verbs
+alışmak|يعتاد|verbs
+izlemek|يشاهد|verbs
+oynamak|يلعب|verbs
+yüzmek|يسبح|verbs
+şarkı söylemek|يغني|verbs
+dans etmek|يرقص|verbs
+para çekmek|يسحب نقودًا|verbs
+kiralamak|يستأجر|verbs|من «كراء»
+ısıtmak|يسخّن|verbs
+beğenmek|يُعجَب|verbs
+nefret etmek|يكره|verbs|من «نفرة»
+korkmak|يخاف|verbs
+inanmak|يصدّق / يؤمن|verbs
+söz vermek|يَعِد|verbs
+özlemek|يشتاق|verbs
+kızmak|يغضب|verbs
+acele etmek|يستعجل|verbs|من «عجلة»
+karı|زوجة|people
+koca|زوج|people
+oğul|ابن|people
+kız|بنت|people
+abla|أخت كبرى|people
+abi|أخ أكبر|people
+dede|جدّ|people
+nine|جدّة|people
+amca|عم|people|من «عم»
+dayı|خال|people
+teyze|خالة|people
+hala|عمّة|people|من «خالة» لكن بمعنى العمّة: صديق مخادع
+yeğen|ابن الأخ أو الأخت|people
+kuzen|ابن العم أو الخال|people
+torun|حفيد|people
+bebek|رضيع|people
+genç|شاب|people
+yaşlı|مسن|people
+kadın|امرأة|people
+adam|رجل|people|من «آدم»
+erkek|ذكر / رجل|people
+bey|السيد|people
+hanım|السيدة|people
+nişanlı|خطيب / خطيبة|people|من «نشان»
+düğün|عرس|people
+doğum günü|عيد ميلاد|people
+yabancı|أجنبي / غريب|people
+vatandaş|مواطن|people|من «وطن»
+Arap|عربي|people
+Türk|تركي|people
+Yemenli|يمني|people
+müze|متحف|city
+park|حديقة عامة|city
+meydan|ساحة|city|من «ميدان»
+hastane|مستشفى|city|من «خستة خانه»
+okul|مدرسة|city
+banka|بنك|city
+postane|مكتب البريد|city
+polis|شرطة|city
+karakol|مخفر|city
+otel|فندق|city
+restoran|مطعم|city
+kafe|مقهى|city
+lokanta|مطعم شعبي|city
+belediye|البلدية|city|من «بلدية»
+kütüphane|مكتبة عامة|city
+sahil|ساحل / كورنيش|city|من «ساحل»
+ada|جزيرة|city
+boğaz|مضيق البوسفور|city
+kule|برج|city
+saray|قصر|city|من «سراي»
+çeşme|نافورة|city
+avm|مركز تسوّق (مول)|city
+sinema|سينما|city
+tiyatro|مسرح|city
+cadde|شارع رئيسي|city|من «جادّة»
+semt|حيّ / منطقة|city|من «سَمت»
+ilçe|قضاء / منطقة إدارية|city
+merkez|مركز|city|من «مركز»
+eski şehir|المدينة القديمة|city
+doktor|طبيب|health
+hasta|مريض|health|من «خستة» الفارسية
+hastalık|مرض|health
+ilaç|دواء|health|من «علاج»
+reçete|وصفة طبية|health
+randevu|موعد|health
+muayene|فحص طبي|health|من «معاينة»
+ağrı|ألم|health
+baş ağrısı|صداع|health
+ateş|حرارة / حمّى|health
+öksürük|سعال|health
+nezle|زكام|health|من «نزلة»
+grip|إنفلونزا|health
+alerji|حساسية|health
+tansiyon|ضغط الدم|health
+şeker hastalığı|السكري|health
+ameliyat|عملية جراحية|health|من «عمليات»
+iğne|إبرة|health
+aşı|لقاح|health
+acil|طوارئ|health|من «عاجل»
+ambulans|إسعاف|health
+diş hekimi|طبيب أسنان|health|«حكيم»
+sigorta|تأمين|health
+iyileşmek|يتعافى|health
+yorgun|متعب|health
+ağrı kesici|مسكّن|health
+vitamin|فيتامين|health
+kan|دم|health
+nefes|نَفَس|health|من «نفَس»
+sağlık|صحة|health
+baş|رأس|body
+saç|شعر|body
+göz|عين|body
+kulak|أذن|body
+burun|أنف|body
+ağız|فم|body
+diş|سن|body
+dil|لسان / لغة|body
+boyun|رقبة|body
+omuz|كتف|body
+kol|ذراع|body
+el|يد|body
+parmak|إصبع|body
+göğüs|صدر|body
+karın|بطن|body
+sırt|ظهر|body
+bel|خصر|body
+bacak|ساق|body
+diz|ركبة|body
+ayak|قدم|body
+kalp|قلب|body|من «قلب»
+mide|معدة|body|من «معدة»
+cilt|جلد|body|من «جلد»
+kemik|عظم|body
+gömlek|قميص|clothes
+pantolon|بنطال|clothes
+etek|تنورة|clothes
+elbise|فستان|clothes|من «ألبسة»
+ceket|سترة|clothes
+mont|معطف شتوي|clothes
+kazak|كنزة صوف|clothes
+tişört|تيشيرت|clothes
+ayakkabı|حذاء|clothes
+çorap|جورب|clothes
+şapka|قبعة|clothes
+eşarp|وشاح|clothes
+başörtüsü|حجاب|clothes
+kemer|حزام|clothes
+cüzdan|محفظة|clothes|من «جزدان»
+gözlük|نظارة|clothes
+kol saati|ساعة يد|clothes
+şemsiye|مظلة|clothes
+pijama|بيجامة|clothes
+iç çamaşırı|ملابس داخلية|clothes
+dar|ضيّق|clothes
+bol|واسع|clothes
+kısa|قصير|clothes
+uzun|طويل|clothes
+güzel|جميل|clothes
+moda|موضة|clothes
+terzi|خيّاط|clothes|من «درزي» الفارسية
+hava durumu|حالة الطقس|weather
+bulut|غيمة|weather
+bulutlu|غائم|weather
+güneşli|مشمس|weather
+yağmurlu|ماطر|weather
+kar|ثلج|weather
+rüzgar|ريح|weather|من «روزگار» الفارسية
+fırtına|عاصفة|weather
+sis|ضباب|weather
+nem|رطوبة|weather|من «نَم»
+derece|درجة|weather|من «درجة»
+serin|منعش / بارد قليلًا|weather
+ılık|فاتر|weather
+deprem|زلزال|weather
+sel|سيل / فيضان|weather|من «سيل»
+ağaç|شجرة|weather
+çiçek|زهرة|weather
+orman|غابة|weather
+dağ|جبل|weather
+göl|بحيرة|weather
+nehir|نهر|weather
+toprak|تراب|weather
+taş|حجر|weather
+gökyüzü|السماء|weather
+yıldız|نجمة|weather
+gök kuşağı|قوس قزح|weather
+mutlu|سعيد|feel
+üzgün|حزين|feel
+sinirli|عصبي|feel
+heyecanlı|متحمّس|feel|من «هيجان»
+korkmuş|خائف|feel
+şaşırmış|متفاجئ|feel
+rahat|مرتاح|feel|من «راحة»
+endişeli|قلق|feel|من «أنديشه» الفارسية
+sakin|هادئ|feel|من «ساكن»
+utangaç|خجول|feel
+cesur|شجاع|feel|من «جسور»
+akıllı|ذكي|feel|من «عقل»
+çalışkan|مجتهد|feel
+tembel|كسول|feel
+nazik|لطيف / مهذّب|feel
+kaba|فظّ|feel
+dürüst|صادق|feel
+sabırlı|صبور|feel|من «صبر»
+komik|مضحك|feel
+ciddi|جادّ|feel|من «جِدّي»
+iyi|جيد|feel
+kötü|سيئ|feel
+önemli|مهم|feel
+ilginç|مثير للاهتمام|feel
+sıkıcı|مملّ|feel
+doğru|صحيح|feel
+yanlış|خطأ|feel
+mümkün|ممكن|feel|من «ممكن»
+imkansız|مستحيل|feel|من «إمكان»
+özel|خاص|feel
+telefon|هاتف|phone
+cep telefonu|هاتف محمول|phone
+şarj|شحن|phone
+şarj aleti|شاحن|phone
+internet|إنترنت|phone
+şifre|كلمة السر|phone|من «شيفرة»
+uygulama|تطبيق|phone
+hat açtırmak|يفتح خطًا|phone
+fatura ödemek|يدفع الفاتورة|phone
+kontör|رصيد|phone
+numara|رقم|phone
+telefon etmek|يتصل هاتفيًا|phone
+cevapsız arama|مكالمة فائتة|phone
+sesli mesaj|رسالة صوتية|phone
+fotoğraf|صورة|phone
+video|فيديو|phone
+indirmek|ينزّل / يحمّل|phone
+yüklemek|يرفع / يحمّل|phone
+paylaşmak|يشارك|phone
+fotoğraf çekmek|يلتقط صورة|phone
+ekran|شاشة|phone
+çekmiyor|لا توجد تغطية|phone
+kayıt|تسجيل|phone|من «قيد»
+hesap açmak|يفتح حسابًا|money
+banka kartı|بطاقة مصرفية|money
+kredi kartı|بطاقة ائتمان|money
+ATM|صراف آلي|money
+havale|حوالة|money|من «حوالة»
+döviz|عملة أجنبية|money
+dolar|دولار|money
+lira|ليرة|money
+kur|سعر الصرف|money
+faiz|فائدة|money|من «فائض»
+borç|دَين|money
+kredi|قرض|money
+maaş yatmak|ينزل الراتب|money
+bakiye|رصيد الحساب|money|من «بقيّة»
+şube|فرع|money|من «شعبة»
+vergi|ضريبة|money
+masraf|مصروف|money|من «مصروف»
+tasarruf|توفير|money|من «تصرّف»
+zengin|غني|money
+fakir|فقير|money|من «فقير»
+bütçe|ميزانية|money
+pasaport|جواز سفر|travel
+vize|تأشيرة|travel
+rezervasyon|حجز|travel
+oda servisi|خدمة الغرف|travel
+resepsiyon|الاستقبال|travel
+valiz|حقيبة سفر|travel
+bavul|حقيبة كبيرة|travel
+uçuş|رحلة طيران|travel
+kalkış|إقلاع / مغادرة|travel
+varış|وصول|travel
+gümrük|جمارك|travel
+tatil|عطلة|travel|من «تعطيل»
+turist|سائح|travel
+harita|خريطة|travel|من «خريطة»
+rehber|دليل / مرشد|travel|من «رهبر» الفارسية
+manzara|منظر|travel|من «منظر»
+plaj|شاطئ|travel
+gezmek|يتجوّل|travel
+seyahat|سفر|travel|من «سياحة»
+yolcu|مسافر / راكب|travel
+ikamet|إقامة|office|من «إقامة»
+ikamet izni|تصريح الإقامة|office
+kimlik|هوية|office
+nüfus müdürlüğü|دائرة النفوس|office
+göç idaresi|دائرة الهجرة|office
+noter|كاتب العدل|office
+tercüme|ترجمة|office|من «ترجمة»
+belge|وثيقة|office
+evrak|أوراق رسمية|office|من «أوراق»
+imza|توقيع|office|من «إمضاء»
+dilekçe|عريضة / طلب خطّي|office
+başvuru formu|استمارة الطلب|office
+harç|رسوم|office|من «خرج»
+onay|موافقة|office
+red|رفض|office|من «ردّ»
+adres|عنوان|office
+e-devlet|بوابة الحكومة الإلكترونية|office
+vergi numarası|الرقم الضريبي|office
+fotokopi|صورة طبق الأصل|office
+vesikalık|صورة شخصية رسمية|office|من «وثيقة»
+sıra numarası|رقم الدور|office
+memur|موظف حكومي|office|من «مأمور»
+kanun|قانون|office|من «قانون»
+avukat|محامٍ|office
+mahkeme|محكمة|office|من «محكمة»
+tencere|قِدر|kitchen
+tava|مقلاة|kitchen
+kepçe|مغرفة|kitchen
+tuzluk|مملحة|kitchen
+yağ|زيت / دهن|kitchen
+un|طحين|kitchen
+pirinç|رز (غير مطبوخ)|kitchen
+baharat|بهارات|kitchen|من «بهارات»
+karabiber|فلفل أسود|kitchen
+kimyon|كمون|kitchen|من «كمّون»
+nane|نعناع|kitchen|من «نعناع»
+sarımsak|ثوم|kitchen
+soğan|بصل|kitchen
+haşlamak|يسلق|kitchen
+kızartmak|يقلي|kitchen
+karıştırmak|يخلط|kitchen
+doğramak|يفرم|kitchen
+tarif|وصفة طبخ|kitchen|من «تعريف»
+çiğ|نيء|kitchen
+pişmiş|مطبوخ|kitchen
+domates|طماطم|fruit
+salatalık|خيار|fruit
+biber|فلفل|fruit
+patates|بطاطا|fruit
+havuç|جزر|fruit
+patlıcan|باذنجان|fruit|من «بادنجان»
+kabak|كوسا|fruit
+fasulye|فاصولياء|fruit
+nohut|حمص|fruit|من «نخود» الفارسية
+marul|خس|fruit
+maydanoz|بقدونس|fruit|من «مقدونس»
+limon|ليمون|fruit|من «ليمون»
+elma|تفاح|fruit
+armut|إجاص|fruit
+muz|موز|fruit|من «موز»
+portakal|برتقال|fruit|من «برتقال»
+mandalina|يوسفي|fruit
+üzüm|عنب|fruit
+karpuz|بطيخ|fruit
+kavun|شمام|fruit
+çilek|فراولة|fruit
+kiraz|كرز|fruit
+şeftali|خوخ / دراق|fruit
+kayısı|مشمش|fruit
+incir|تين|fruit
+nar|رمان|fruit|من «انار» الفارسية
+hurma|تمر|fruit|من «خرما» الفارسية
+fındık|بندق|fruit|من «فندق»
+ceviz|جوز|fruit|من «جوز»
+badem|لوز|fruit
+beyaz|أبيض|colors
+siyah|أسود|colors
+kırmızı|أحمر|colors
+mavi|أزرق|colors
+yeşil|أخضر|colors
+sarı|أصفر|colors
+turuncu|برتقالي|colors
+mor|بنفسجي|colors
+pembe|وردي|colors
+kahverengi|بنّي|colors
+gri|رمادي|colors
+lacivert|كحلي|colors
+açık renk|لون فاتح|colors
+koyu|غامق|colors
+yuvarlak|دائري|colors
+kare|مربع|colors
+ne|ماذا|qwords
+kim|من|qwords
+nerede|أين|qwords
+nereye|إلى أين|qwords
+nereden|من أين|qwords
+ne zaman|متى|qwords|«زمان»
+neden|لماذا|qwords
+niçin|لأجل ماذا|qwords
+nasıl|كيف|qwords
+hangi|أيّ|qwords
+kaç|كم (عددًا)|qwords
+kaç para|بكم؟|qwords
+ve|و|qwords
+ama|لكن|qwords|من «أمّا»
+çünkü|لأن|qwords
+veya|أو|qwords
+ile|مع|qwords
+için|من أجل|qwords
+gibi|مثل|qwords
+kadar|حتى / بقدر|qwords|من «قَدَر»
+daha|أكثر / بعد|qwords
+en|الأكثر|qwords
+çok|كثير / جدًا|qwords
+az|قليل|qwords
+biraz|قليلًا|qwords
+her|كل|qwords
+hepsi|كلّهم|qwords
+bazı|بعض|qwords
+başka|آخر|qwords
+aynı|نفس|qwords|من «عين»
+şey|شيء|qwords|من «شيء»
+burası|هنا (هذا المكان)|qwords
+orası|هناك|qwords
+burada|هنا|qwords
+orada|هناك|qwords
+bu|هذا|qwords
+şu|ذلك (قريب)|qwords
+o|ذلك / هو|qwords
+ben|أنا|qwords
+sen|أنت|qwords
+biz|نحن|qwords
+siz|أنتم / حضرتك|qwords
+onlar|هم|qwords
+spor|رياضة|hobby
+futbol|كرة قدم|hobby
+maç|مباراة|hobby
+takım|فريق|hobby
+spor salonu|نادٍ رياضي|hobby
+yürüyüş|مشي / نزهة|hobby
+kitap|كتاب|hobby|من «كتاب»
+roman|رواية|hobby
+müzik|موسيقى|hobby
+şarkı|أغنية|hobby
+film|فيلم|hobby
+dizi|مسلسل|hobby
+oyun|لعبة|hobby
+resim|رسم / صورة|hobby|من «رسم»
+fotoğrafçılık|التصوير|hobby
+balık tutmak|يصطاد السمك|hobby
+piknik|نزهة في الطبيعة|hobby
+kamp|تخييم|hobby
+hobi|هواية|hobby
+boş zaman|وقت الفراغ|hobby
+ders|درس|school|من «درس»
+sınıf|صف|school|من «صنف»
+sınav|امتحان|school
+not|علامة / ملاحظة|school
+ödev|واجب منزلي|school
+defter|دفتر|school|من «دفتر»
+kalem|قلم|school|من «قلم»
+silgi|ممحاة|school
+sözlük|قاموس|school
+kelime|كلمة|school|من «كلمة»
+cümle|جملة|school|من «جملة»
+soru|سؤال|school
+cevap|جواب|school|من «جواب»
+üniversite|جامعة|school
+kurs|دورة تعليمية|school
+dil kursu|دورة لغة|school
+anaokulu|روضة أطفال|school
+öğrenmek istiyorum|أريد أن أتعلّم|school
+tekrar|تكرار|school|من «تكرار»
+örnek|مثال|school
+anlam|معنى|school
+`;
 const VOCAB=VOCAB_RAW.trim().split('\n').map(l=>{const [tr,ar,cat,note]=l.split('|');return {tr,ar,cat,note:note||''}});
+function extraWords(){try{return JSON.parse(localStorage.getItem('oyna.extra')||'[]')}catch{return []}}
+(()=>{const have=new Set(VOCAB.map(v=>v.tr.toLowerCase()));for(const x of extraWords()){if(x&&x.tr&&x.ar&&CATS[x.cat]&&!have.has(x.tr.toLowerCase())){VOCAB.push({tr:x.tr,ar:x.ar,cat:x.cat,note:x.note||'',ai:true});have.add(x.tr.toLowerCase())}}})();
 const W=Object.fromEntries(VOCAB.map(v=>[v.tr,v]));
 
 // Arabic bridges & false friends: tr|ar meaning|same or shift|note
@@ -854,11 +1610,11 @@ function render(){
   if(S.screen==='kahoot'){lockPage(true);a.innerHTML=vKahoot();return}
   lockPage(false);
   const shell=['home','games','talk','me','cats'].includes(S.screen);
-  const body=({home:vHome,games:vGames,talk:vScenes,me:vMe,cats:vCats,learn:vLearn,play:vPlay,end:vEnd})[S.screen]();
+  const body=({home:vHome,games:vGames,talk:vScenes,me:vMe,cats:vCats,expand:vExpand,learn:vLearn,play:vPlay,end:vEnd})[S.screen]();
   if(shell){
     const st=streakNow();
     a.innerHTML=`<header class="nav" id="nav"><div class="wrap in">
-      <div>${S.screen==='cats'?`<button class="link" data-act="back">‹ رجوع</button>`:`<span class="chipstat" style="color:${st?'var(--red)':'var(--muted)'}">${ICON.flame}${st}</span>`}</div>
+      <div>${S.screen==='cats'||S.screen==='expand'?`<button class="link" data-act="${S.screen==='expand'?'toCats':'back'}">‹ رجوع</button>`:`<span class="chipstat" style="color:${st?'var(--red)':'var(--muted)'}">${ICON.flame}${st}</span>`}</div>
       <div class="mid">${TITLE[S.screen]}</div>
       <div class="nend"><span class="chipstat" style="color:var(--orange)">${ICON.bolt}<span style="color:var(--ink)">${P.xp}</span></span></div></div></header>
       <main class="wrap">${body}</main>
@@ -925,8 +1681,36 @@ function aiSettings(){const k=aiKey();return `<section><h2 class="gtitle">الم
    <div class="cell plain" style="cursor:default"><input id="keyIn" class="fld" type="password" placeholder="sk-ant-…" value="${esc(k)}" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
    <div class="cell plain" style="cursor:default"><button class="btn" data-act="keySave" style="min-height:40px;padding:8px">حفظ واختبار</button></div>
   </div><p class="gfoot" id="keyMsg">${k?'':'تحتاجه الدردشة الحرة ومواقف إسطنبول وزر «لماذا؟». أنشئه من console.anthropic.com ← API Keys. إن أدخلته في دفتر الصلات على حساب GitHub نفسه يعمل هنا تلقائيًا.'}</p></section>`}
-function vCats(){return `<div class="lt"><h1>اختر موضوعًا</h1><p>ست كلمات في كل جولة</p></div>
-  <div class="stack"><div class="group">${Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x.cat===k)).map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length,l=learnedIn(k);return `<button class="cell plain" data-act="learnCat" data-c="${k}"><div class="body"><div class="t">${v}</div><div class="bar"><i style="width:${Math.round(l/tot*100)}%"></i></div></div><span class="v">${l}/${tot}</span>${chev}</button>`}).join('')}</div></div>`}
+function vCats(){return `<div class="lt"><h1>اختر موضوعًا</h1><p>ست كلمات في كل جولة · ${VOCAB.length} كلمة في ${Object.keys(CATS).filter(k=>VOCAB.some(x=>x.cat===k)).length} موضوعًا</p></div>
+  <div class="stack"><div class="group"><button class="cell plain" data-act="expand"><div class="body"><div class="t" style="color:var(--tint);font-weight:600">＋ وسّع قاموسك</div><div class="s" style="font-size:13px;color:var(--muted)">كلمات يومية جديدة بلا نهاية، أو موضوع من اختيارك</div></div>${chev}</button></div><div class="group">${Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x.cat===k)).map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length,l=learnedIn(k);return `<button class="cell plain" data-act="learnCat" data-c="${k}"><div class="body"><div class="t">${v}</div><div class="bar"><i style="width:${Math.round(l/tot*100)}%"></i></div></div><span class="v">${l}/${tot}</span>${chev}</button>`}).join('')}</div></div>`}
+const XP={busy:'',msg:''};
+function vExpand(){const cats=Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x.cat===k));const n=extraWords().length;
+  return `<div class="lt"><h1>وسّع قاموسك</h1><p>${n?`أضفت حتى الآن ${n} كلمة جديدة`:'كل ضغطة تضيف 12 كلمة يومية جديدة لم تتعلّمها بعد'}</p></div>
+  <div class="stack">
+   ${!S.ai?`<p class="gfoot" style="margin:0 4px">يحتاج هذا مفتاح Claude. أضفه من «التقدّم» ← المساعد الذكي.</p>`:''}
+   ${XP.busy?`<div class="group"><div class="cell plain" style="cursor:default"><div class="body"><div class="t">يجهّز كلمات جديدة لموضوع «${esc(XP.busy)}»…</div><div class="bar"><i style="width:60%"></i></div></div></div></div>`:''}
+   <section><h2 class="gtitle">موضوع من اختيارك</h2><div class="group"><div class="cell plain" style="cursor:default"><input id="xpTopic" class="fld" style="direction:rtl;text-align:right" placeholder="مثال: الحلاق، الصيدلية، كرة القدم، المطار"></div><div class="cell plain" style="cursor:default"><button class="btn" data-act="xpNew" ${XP.busy?'disabled':''} style="min-height:44px;padding:8px">أنشئ الموضوع بكلماته</button></div></div></section>
+   <section><h2 class="gtitle">أضف 12 كلمة إلى موضوع</h2><div class="group">${cats.map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length;const ai=VOCAB.filter(x=>x.cat===k&&x.ai).length;return `<button class="cell plain" data-act="xpCat" data-c="${k}" ${XP.busy?'disabled':''}><div class="body"><div class="t">${esc(v)}</div><div class="s" style="font-size:13px;color:var(--muted)">${tot} كلمة${ai?` · منها ${ai} مضافة`:''}</div></div><span class="v" style="color:var(--tint);font-weight:600">＋12</span></button>`}).join('')}</div></section>
+   <p class="gfoot">الكلمات الجديدة تُحفظ على هاتفك وتدخل فورًا في الدروس والألعاب والمراجعة.</p>
+  </div>`}
+async function xpGenerate(cat,label){if(!S.ai){toast('أضف مفتاح Claude أولًا من «التقدّم»');return}if(XP.busy)return;
+  XP.busy=label;render();
+  const known=VOCAB.map(v=>v.tr).join(', ');
+  const prompt=`أنت معلّم لغة تركية للعرب المقيمين في إسطنبول. اقترح 12 كلمة أو عبارة تركية جديدة من موضوع «${label}»، من الأكثر استعمالًا في الحياة اليومية الفعلية في إسطنبول، وليست في هذه القائمة التي يعرفها المتعلّم: ${known}
+الشروط:
+- إملاء تركي صحيح بالحروف ç ğ ı ö ş ü، والأفعال بصيغة المصدر (-mek/-mak).
+- المعنى العربي قصير وواضح.
+- note: إن كانت الكلمة من أصل عربي فاكتب «من «الكلمة العربية»»، وإن كانت صديقًا مخادعًا (تشبه كلمة عربية بمعنى مختلف) فنبّه بجملة قصيرة، وإلا اتركها فارغة.
+- لا تكرار، ولا كلمات نادرة أو أدبية.
+أجب بـJSON فقط: {"words":[{"tr":"","ar":"","note":""}]}`;
+  try{const j=await S.ai.json(prompt,{modelTier:'default'});
+    const have=new Set(VOCAB.map(v=>v.tr.toLowerCase()));const add=[];
+    for(const w of (j&&Array.isArray(j.words)?j.words:[])){const tr=String(w.tr||'').trim(),ar=String(w.ar||'').trim();if(!tr||!ar||have.has(tr.toLowerCase())||tr.length>40)continue;have.add(tr.toLowerCase());add.push({tr,ar,cat,note:String(w.note||'').trim()})}
+    if(!add.length)throw {text:'لم تصل كلمات جديدة، أعد المحاولة'};
+    const ex=extraWords();ex.push(...add);try{localStorage.setItem('oyna.extra',JSON.stringify(ex))}catch{}
+    for(const a of add){const v={...a,ai:true};VOCAB.push(v);W[v.tr]=v}
+    XP.busy='';L={cat,words:add.slice(0,6),i:0};S.screen='learn';render();toast('أُضيفت '+add.length+' كلمة');if(ttsReady)speak(L.words[0].tr)}
+  catch(e){XP.busy='';render();toast(aiErr(e))}}
 let L=null;
 const closeBtn=act=>`<button class="link" data-act="${act}" style="flex:none">إغلاق</button>`;
 function vLearn(){const v=L.words[L.i];return `<div class="play wrap"><div class="ptop">${closeBtn('back')}<div class="prog"><i style="width:${(L.i/L.words.length)*50}%"></i></div></div>
@@ -1248,6 +2032,10 @@ document.addEventListener('click',e=>{
    case 'rate':P.rate=+el.dataset.v||.9;save();speak('Merhaba, nasılsın?');render();break;
    case 'say':speak(el.dataset.t);break;
    case 'slow':speak(el.dataset.t,.6);break;
+   case 'expand':S.screen='expand';render();window.scrollTo(0,0);break;
+   case 'toCats':S.screen='cats';render();window.scrollTo(0,0);break;
+   case 'xpCat':xpGenerate(el.dataset.c,CATS[el.dataset.c]);break;
+   case 'xpNew':{const t=($('#xpTopic')||{}).value;const name=String(t||'').trim().slice(0,40);if(!name){toast('اكتب اسم الموضوع');return}let key=Object.keys(CATS).find(k=>CATS[k]===name);if(!key){key='u'+Date.now().toString(36);CATS[key]=name;try{const c=JSON.parse(localStorage.getItem('oyna.cats')||'{}');c[key]=name;localStorage.setItem('oyna.cats',JSON.stringify(c))}catch{}}xpGenerate(key,name);break}
    case 'learnCat':{const c=el.dataset.c;let ws=VOCAB.filter(v=>v.cat===c&&!P.srs[v.tr]);if(!ws.length){ws=pick(VOCAB.filter(v=>v.cat===c),6);toast('أتممت هذا الموضوع، هذه مراجعة')}L={cat:c,words:ws.slice(0,6),i:0};S.screen='learn';render();if(ttsReady)speak(L.words[0].tr);break}
    case 'learnNext':if(L.i<L.words.length-1){L.i++;render();if(ttsReady)speak(L.words[L.i].tr)}else{G={type:'learnquiz',items:makeItems('learnquiz',L.words),i:0,ok:0,xp:0,combo:0,state:'q',sel:[],t0:Date.now(),missed:[]};S.screen='play';render()}break;
    case 'ans':{if(G.state!=='q')return;const it=G.items[G.i];const o=it.options[+el.dataset.k];G.pick=o;answer(o===it.answer,it.word);break}
