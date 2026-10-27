@@ -1556,7 +1556,10 @@ const GAMES={
 };
 let G=null;
 function mcq(prompt,options,answer,extra={}){return {kind:'mcq',prompt,options:shuffle(options),answer,...extra}}
-function arDistract(v,n=3){const same=VOCAB.filter(x=>x.cat===v.cat&&x.tr!==v.tr&&x.ar!==v.ar);const pool=same.length>=n?same:VOCAB.filter(x=>x.tr!==v.tr&&x.ar!==v.ar);return pick(pool,n)}
+const arParts=a=>String(a||'').replace(/[\u064B-\u0652\u0640]/g,'').replace(/\([^)]*\)/g,' ').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').split(/[\/،,؛;]| أو /).map(x=>x.replace(/^(ال|لا )/,'').trim()).filter(x=>x.length>1);
+const trRoot=t=>lower(String(t||'')).split(' ')[0].slice(0,4);
+function clash(a,b){if(a.tr===b.tr||a.ar===b.ar)return true;const pa=arParts(a.ar),pb=arParts(b.ar);if(pa.some(x=>pb.some(y=>x===y||(x.length>2&&y.length>2&&(x.includes(y)||y.includes(x))))))return true;const ra=trRoot(a.tr),rb=trRoot(b.tr);return ra.length>=4&&ra===rb}
+function arDistract(v,n=3){const ok=VOCAB.filter(x=>!clash(v,x));const same=ok.filter(x=>x.cat===v.cat);const pool=same.length>=n?same:ok;const out=[];for(const x of shuffle(pool)){if(out.every(y=>!clash(x,y)))out.push(x);if(out.length===n)break}return out}
 function poolWords(){const learned=VOCAB.filter(v=>P.srs[v.tr]);return learned.length>=8?learned:VOCAB}
 function makeItems(type,arg){
   if(type==='review'){let due=dueWords();if(!due.length)due=Object.keys(P.srs).filter(w=>W[w]);
@@ -1689,6 +1692,8 @@ function vExpand(){const cats=Object.entries(CATS).filter(([k])=>VOCAB.some(x=>x
   <div class="stack">
    ${!S.ai?`<p class="gfoot" style="margin:0 4px">يحتاج هذا مفتاح Claude. أضفه من «التقدّم» ← المساعد الذكي.</p>`:''}
    ${XP.busy?`<div class="group"><div class="cell plain" style="cursor:default"><div class="body"><div class="t">يجهّز كلمات جديدة لموضوع «${esc(XP.busy)}»…</div><div class="bar"><i style="width:60%"></i></div></div></div></div>`:''}
+   ${XP.msg?`<p class="gfoot" style="margin:0 4px;color:var(--green)">${esc(XP.msg)}</p>`:''}
+   ${n?`<section><h2 class="gtitle">تدقيق</h2><div class="group"><button class="cell plain" data-act="xpAudit" ${XP.busy?'disabled':''}><div class="body"><div class="t">راجع كلماتي المضافة وصحّحها</div><div class="s" style="font-size:13px;color:var(--muted)">يدقّق ${n} كلمة: الإملاء والمعنى والأصل العربي، ويصحّح الخطأ أو يحذفه</div></div>${chev}</button></div></section>`:''}
    <section><h2 class="gtitle">موضوع من اختيارك</h2><div class="group"><div class="cell plain" style="cursor:default"><input id="xpTopic" class="fld" style="direction:rtl;text-align:right" placeholder="مثال: الحلاق، الصيدلية، كرة القدم، المطار"></div><div class="cell plain" style="cursor:default"><button class="btn" data-act="xpNew" ${XP.busy?'disabled':''} style="min-height:44px;padding:8px">أنشئ الموضوع بكلماته</button></div></div></section>
    <section><h2 class="gtitle">أضف 12 كلمة إلى موضوع</h2><div class="group">${cats.map(([k,v])=>{const tot=VOCAB.filter(x=>x.cat===k).length;const ai=VOCAB.filter(x=>x.cat===k&&x.ai).length;return `<button class="cell plain" data-act="xpCat" data-c="${k}" ${XP.busy?'disabled':''}><div class="body"><div class="t">${esc(v)}</div><div class="s" style="font-size:13px;color:var(--muted)">${tot} كلمة${ai?` · منها ${ai} مضافة`:''}</div></div><span class="v" style="color:var(--tint);font-weight:600">＋12</span></button>`}).join('')}</div></section>
    <p class="gfoot">الكلمات الجديدة تُحفظ على هاتفك وتدخل فورًا في الدروس والألعاب والمراجعة.</p>
@@ -1700,17 +1705,49 @@ async function xpGenerate(cat,label){if(!S.ai){toast('أضف مفتاح Claude �
 الشروط:
 - إملاء تركي صحيح بالحروف ç ğ ı ö ş ü، والأفعال بصيغة المصدر (-mek/-mak).
 - المعنى العربي قصير وواضح.
-- note: إن كانت الكلمة من أصل عربي فاكتب «من «الكلمة العربية»»، وإن كانت صديقًا مخادعًا (تشبه كلمة عربية بمعنى مختلف) فنبّه بجملة قصيرة، وإلا اتركها فارغة.
+- المعنى العربي يطابق الصيغة التركية بالضبط: الفعل المصرّف يُترجم بزمنه وضميره، والمصدر يُترجم مصدرًا.
+- note: اكتب «من «الكلمة العربية»» فقط إن كان الأصل العربي مؤكدًا في المعاجم التأصيلية التركية (مثل Nişanyan وTDK). لا تخمّن أبدًا: إن لم تكن متأكدًا فاتركها فارغة. الكلمات التركية الأصيلة واللواحق (مثل -iyor و-mek) ليس لها أصل عربي. وإن كانت صديقًا مخادعًا فنبّه بجملة قصيرة.
 - لا تكرار، ولا كلمات نادرة أو أدبية.
 أجب بـJSON فقط: {"words":[{"tr":"","ar":"","note":""}]}`;
   try{const j=await S.ai.json(prompt,{modelTier:'default'});
     const have=new Set(VOCAB.map(v=>v.tr.toLowerCase()));const add=[];
     for(const w of (j&&Array.isArray(j.words)?j.words:[])){const tr=String(w.tr||'').trim(),ar=String(w.ar||'').trim();if(!tr||!ar||have.has(tr.toLowerCase())||tr.length>40)continue;have.add(tr.toLowerCase());add.push({tr,ar,cat,note:String(w.note||'').trim()})}
+    XP.busy=label+' · تدقيق';render();
+    const checked=await aiVerify(add);add.length=0;add.push(...checked);
     if(!add.length)throw {text:'لم تصل كلمات جديدة، أعد المحاولة'};
     const ex=extraWords();ex.push(...add);try{localStorage.setItem('oyna.extra',JSON.stringify(ex))}catch{}
     for(const a of add){const v={...a,ai:true};VOCAB.push(v);W[v.tr]=v}
     XP.busy='';L={cat,words:add.slice(0,6),i:0};S.screen='learn';render();toast('أُضيفت '+add.length+' كلمة');if(ttsReady)speak(L.words[0].tr)}
   catch(e){XP.busy='';render();toast(aiErr(e))}}
+async function aiVerify(list){
+  const prompt=`أنت مدقّق لغوي خبير في التركية وتأصيل مفرداتها، تراجع بطاقات تعليمية لمتعلّم عربي. لكل عنصر تحقّق من:
+1) إملاء الكلمة التركية صحيح ومستعمل فعلًا في الحياة اليومية في تركيا.
+2) المعنى العربي دقيق ويطابق الصيغة بالضبط (الزمن والضمير والنفي)، وبلا لبس.
+3) الملاحظة: أي ادعاء بأصل عربي يجب أن يكون مؤكدًا في المعاجم التأصيلية (Nişanyan وTDK). إن كان خاطئًا أو مشكوكًا فيه فاحذفه واجعل note فارغة أو صحّحها. الكلمات التركية الأصيلة واللواحق مثل -iyor ليس لها أصل عربي.
+أصلح ما يمكن إصلاحه، واجعل ok=false لما هو خاطئ أو نادر أو غير واضح.
+العناصر:
+${JSON.stringify(list.map(w=>({tr:w.tr,ar:w.ar,note:w.note||''})))}
+أجب بـJSON فقط بالترتيب نفسه: {"items":[{"tr":"","ar":"","note":"","ok":true}]}`;
+  const j=await S.ai.json(prompt,{modelTier:'default'});
+  const items=j&&Array.isArray(j.items)?j.items:null;if(!items||items.length!==list.length)throw {text:'تعذّر التدقيق، أعد المحاولة'};
+  const out=[];items.forEach((r,i)=>{if(!r||r.ok===false)return;const tr=String(r.tr||'').trim(),ar=String(r.ar||'').trim();if(!tr||!ar||tr.length>40)return;out.push({...list[i],tr,ar,note:String(r.note||'').trim(),_i:i})});
+  return out}
+function dropWord(tr){const v=W[tr];if(!v||!v.ai)return;const i=VOCAB.indexOf(v);if(i>=0)VOCAB.splice(i,1);delete W[tr];delete P.srs[tr];
+  try{localStorage.setItem('oyna.extra',JSON.stringify(extraWords().filter(x=>x.tr!==tr)))}catch{}save()}
+async function xpAudit(){if(!S.ai){toast('أضف مفتاح Claude أولًا من «التقدّم»');return}if(XP.busy)return;
+  const ex=extraWords();if(!ex.length){toast('لا توجد كلمات مضافة بعد');return}
+  const kept=[];let fixed=0,removed=0;
+  try{for(let i=0;i<ex.length;i+=25){XP.busy='تدقيق كلماتك المضافة '+Math.min(i+25,ex.length)+'/'+ex.length;render();
+      const part=ex.slice(i,i+25);const ok=await aiVerify(part);const byI=new Map(ok.map(o=>[o._i,o]));
+      part.forEach((w,k)=>{const c=byI.get(k);if(!c){removed++;return}delete c._i;if(c.tr!==w.tr||c.ar!==w.ar||(c.note||'')!==(w.note||''))fixed++;kept.push(c)})}
+  }catch(e){XP.busy='';render();toast(aiErr(e)+' · لم يتغيّر شيء');return}
+  const seen=new Set(VOCAB.filter(v=>!v.ai).map(v=>v.tr.toLowerCase()));const final=[];
+  for(const w of kept){const k=w.tr.toLowerCase();if(seen.has(k)){removed++;continue}seen.add(k);final.push(w)}
+  for(const old of ex){if(!final.some(w=>w.tr===old.tr))delete P.srs[old.tr]}
+  try{localStorage.setItem('oyna.extra',JSON.stringify(final))}catch{}
+  for(let i=VOCAB.length-1;i>=0;i--)if(VOCAB[i].ai){delete W[VOCAB[i].tr];VOCAB.splice(i,1)}
+  for(const w of final){const v={tr:w.tr,ar:w.ar,cat:w.cat,note:w.note||'',ai:true};if(!W[v.tr]){VOCAB.push(v);W[v.tr]=v}}
+  save();XP.busy='';XP.msg=`راجعت كلماتك المضافة (${ex.length}): صحّحت ${fixed}، وحذفت ${removed}، والباقي سليم.`;render()}
 let L=null;
 const closeBtn=act=>`<button class="link" data-act="${act}" style="flex:none">إغلاق</button>`;
 function vLearn(){const v=L.words[L.i];return `<div class="play wrap"><div class="ptop">${closeBtn('back')}<div class="prog"><i style="width:${(L.i/L.words.length)*50}%"></i></div></div>
@@ -1735,7 +1772,7 @@ function fbar(it){
   if(it.kind==='order'){detail=`<p class="tr" style="font-size:18px;text-align:left">${esc(it.s.tr)}</p>`;if(!ok)detail+=`<p>تذكّر: الفعل يأتي غالبًا في آخر الجملة التركية.</p>`}
   if(it.kind==='build'){detail=`<p><span class="tr" style="font-size:20px">${esc(it.b.p.join(''))}</span> = ${it.b.p.map((x,i)=>i===0?`<b class="tr">${esc(x)}</b>`:`<span class="tr">-${esc(x)}</span> ${BUILD_NOTES[x]?'('+BUILD_NOTES[x]+')':''}`).join(' + ')}</p>`}
   const say=it.say||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''));
-  return `<div class="fbar ${ok?'ok':'bad'}"><div class="wrap"><div class="row"><h3 style="flex:1">${ok?pickOne(['ممتاز!','أحسنت!','صحيح!','Harika!','Süper!']):'ليست هذه'}</h3>${!ok&&S.ai&&!it.why&&!it.bridge?`<button class="why" data-act="aiwhy">لماذا؟</button>`:''}${say&&ttsReady?`<button class="speak" data-act="say" data-t="${esc(say)}">${ICON.spk}</button>`:''}</div>${detail}<div id="aiwhy"></div><button class="btn ${ok?'okb':'badb'}" data-act="next">متابعة</button></div></div>`}
+  return `<div class="fbar ${ok?'ok':'bad'}"><div class="wrap"><div class="row"><h3 style="flex:1">${ok?pickOne(['ممتاز!','أحسنت!','صحيح!','Harika!','Süper!']):'ليست هذه'}</h3>${!ok&&S.ai&&!it.why&&!it.bridge?`<button class="why" data-act="aiwhy">لماذا؟</button>`:''}${say&&ttsReady?`<button class="speak" data-act="say" data-t="${esc(say)}">${ICON.spk}</button>`:''}</div>${detail}<div id="aiwhy"></div>${it.word&&W[it.word]&&W[it.word].ai?`<p style="margin:4px 0 8px"><button class="link" data-act="delWord" data-t="${esc(it.word)}">هذه الكلمة أُضيفت آليًا. خاطئة؟ احذفها</button></p>`:''}<button class="btn ${ok?'okb':'badb'}" data-act="next">متابعة</button></div></div>`}
 const pickOne=a=>a[Math.random()*a.length|0];
 function vEnd(){const acc=Math.round(G.ok/G.items.length*100);const secs=Math.round((Date.now()-G.t0)/1000);
   return `<div class="wrap"><div class="nend"><h2>${acc===100?'جولة كاملة!':acc>=70?'أحسنت':'تدريب جيد'}</h2><p style="margin:0;color:var(--muted)">${esc(GAMES[G.type==='learnquiz'?'learn':G.type].t)}</p>
@@ -1927,7 +1964,7 @@ function kWord(){const v=VOCAB[Math.random()*VOCAB.length|0];
   return Math.random()<.5?{title:'Ne demek? · ماذا تعني؟',big:v.tr,bigTr:1,opts:uniq4(v.ar,arDistract(v).map(x=>x.ar)),ans:v.ar,say:v.tr,word:v.tr,why:v.note,T:20}
    :{title:'Türkçesi ne? · كيف تقولها بالتركية؟',big:v.ar,opts:uniq4(v.tr,arDistract(v).map(x=>x.tr)),ans:v.tr,optsTr:1,say:v.tr,word:v.tr,why:v.note,T:20}}
 function kBridge(){const b=BRIDGES[Math.random()*BRIDGES.length|0];
-  if(Math.random()<.4){const trap=(b.note.match(/«([^»]+)»/)||[])[1];const truth=Math.random()<.5||b.kind!=='shift'||!trap||trap===b.ar;
+  if(Math.random()<.4){const trap=(b.note.match(/«([^»]+)»/)||[])[1];const truth=Math.random()<.5||b.kind!=='shift'||!trap||trap===b.ar||!/لكن|ليست|انتبه/.test(b.note);
     const shown=truth?b.ar:trap;return {title:'Doğru mu? · صح أم خطأ؟',big:b.tr,bigTr:1,sub:'= '+shown,tf:1,opts:['صح','خطأ'],ans:truth?'صح':'خطأ',say:b.tr,why:b.note,T:12}}
   return {title:'Ne demek? · ماذا تعني بالتركية؟',big:b.tr,bigTr:1,opts:uniq4(b.ar,shuffle(BRIDGES.filter(x=>x.ar!==b.ar)).map(x=>x.ar)),ans:b.ar,say:b.tr,why:b.note,T:18}}
 function kHarmony(){for(let g=0;g<50;g++){const w=NOUNS[Math.random()*NOUNS.length|0];const sx=SUFX[Math.random()*SUFX.length|0];if(!sx.ok(w))continue;const ans=sx.make(w);
@@ -2046,7 +2083,7 @@ document.addEventListener('click',e=>{
      if(m.a&&m.b){const p=it.pairs.find(x=>x.tr===m.a);if(p&&p.ar===m.b){m.done.push(m.a);G.combo++;G.xp+=4}else{G.combo=0;m.miss=1;G.missed.push(m.a);const sel=document.querySelectorAll('.mi.sel');sel.forEach(x=>x.classList.add('bad'));m.a=m.b=null;setTimeout(render,350);return}m.a=m.b=null;
        if(m.done.length===it.pairs.length){if(!m.miss)G.ok++;setTimeout(next,250)}}
      render();break}
-   case 'next':next();break;
+   case 'next':next();break;case 'delWord':dropWord(el.dataset.t);toast('حُذفت الكلمة');next();break;case 'xpAudit':xpAudit();break;
    case 'aiwhy':aiWhy();break;
    case 'quit':if(G&&G.xp){gain(Math.round(G.xp/2));save()}S.screen=S.lastTab||'home';G=null;render();break;
    case 'again':start(G.type==='learnquiz'?'learn':G.type);break;
