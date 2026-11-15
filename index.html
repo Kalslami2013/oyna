@@ -160,6 +160,7 @@ button{font:inherit;color:inherit}
 .note b{color:var(--orange)}
 .dots{display:flex;gap:6px;justify-content:center}
 .dots i{width:7px;height:7px;border-radius:50%;background:var(--sep)} .dots i.on{background:var(--tint)}
+.fbar .pair{font-size:19px;margin:4px 0 2px}.fbar .pair .tr{font-size:22px;letter-spacing:.3px}.fbar .origin{opacity:.85;font-size:14px}
 .fbar{position:fixed;inset:auto 0 0;z-index:20;background:var(--bar);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-top:.5px solid var(--sep);padding-bottom:env(safe-area-inset-bottom,0px)}
 .fbar.ok,.fbar.bad{border-top:0;border-radius:18px 18px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.1);animation:up .25s cubic-bezier(.2,.8,.2,1)}
 .fbar.ok{background:var(--green-soft)} .fbar.bad{background:var(--red-soft)}
@@ -1767,8 +1768,13 @@ function vPlay(){const it=G.items[G.i];const pct=G.i/G.items.length*100;
 function fbar(it){
   if(G.state==='q'){if(it.kind==='order'||it.kind==='build')return `<div class="fbar"><div class="wrap"><button class="btn" data-act="check" ${G.sel.length?'':'disabled'}>تحقّق</button></div></div>`;return ''}
   const ok=G.state==='ok';let detail='';
-  if(it.kind==='mcq'){if(!ok)detail=`<p>الصحيح: <b class="${it.trOpts?'tr':''}">${esc(it.answer)}</b>${it.full?` <span class="tr" style="font-weight:500">· ${esc(it.full)}</span>`:''}</p>`;
-    if(it.why)detail+=`<p>${it.why}</p>`;if(it.bridge)detail+=`<p><b>${it.bridge.kind==='same'?'نفس المعنى العربي.':'معنى مختلف!'}</b> ${esc(it.bridge.note)}</p>`;if(it.note&&!it.bridge&&ok)detail+=`<p>${esc(it.note)}</p>`}
+  if(it.kind==='mcq'){
+    /* the Turkish word and its meaning are always shown after answering, right or wrong, so the sound is tied to the written word */
+    const trW=it.word||(it.trOpts?it.answer:null),ve=trW&&VOCAB.find(v=>v.tr===trW);
+    if(ve)detail=`<p class="pair"><b class="tr">${esc(ve.tr)}</b> = ${esc(ve.ar)}</p>`;
+    else if(!ok)detail=`<p>الصحيح: <b class="${it.trOpts?'tr':''}">${esc(it.answer)}</b>${it.full?` <span class="tr" style="font-weight:500">· ${esc(it.full)}</span>`:''}</p>`;
+    if(it.why)detail+=`<p>${it.why}</p>`;if(it.bridge)detail+=`<p><b>${it.bridge.kind==='same'?'نفس المعنى العربي.':'معنى مختلف!'}</b> ${esc(it.bridge.note)}</p>`;
+    const nt=it.note||(ve&&ve.note);if(nt&&!it.bridge)detail+=`<p class="origin">💡 ${/^من «/.test(nt)?'أصلها '+esc(nt):esc(nt)}</p>`}
   if(it.kind==='order'){detail=`<p class="tr" style="font-size:18px;text-align:left">${esc(it.s.tr)}</p>`;if(!ok)detail+=`<p>تذكّر: الفعل يأتي غالبًا في آخر الجملة التركية.</p>`}
   if(it.kind==='build'){detail=`<p><span class="tr" style="font-size:20px">${esc(it.b.p.join(''))}</span> = ${it.b.p.map((x,i)=>i===0?`<b class="tr">${esc(x)}</b>`:`<span class="tr">-${esc(x)}</span> ${BUILD_NOTES[x]?'('+BUILD_NOTES[x]+')':''}`).join(' + ')}</p>`}
   const say=it.say||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''));
