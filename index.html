@@ -1470,11 +1470,41 @@ const ICON={
  cards:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="12" height="14" rx="2.5"/><path d="M8 3.5h9.5A2.5 2.5 0 0 1 20 6v11"/></svg>'
 };
 
+/* ===================== recorded voice =====================
+   every word and sentence is recorded in a natural Turkish voice (snd.json + s*.mp3);
+   one <audio> element unlocked by the first tap plays it on iPhone even in silent mode.
+   The device voice is only the fallback (AI chat replies). */
+const SND_DIR="";
+const CL={idx:null,p:null,bufs:{},player:null,unlocked:false,tok:0};
+const ckey=s=>String(s).toLocaleLowerCase('tr-TR').replace(/[.!?,;:"“”'’()…«»]/g,'').replace(/\s+/g,' ').trim();
+function clIdx(){if(CL.p)return CL.p;if(typeof fetch!=='function')return CL.p=Promise.resolve(null);
+  CL.p=fetch(SND_DIR+'snd.json').then(r=>r.ok?r.json():null).catch(()=>null).then(j=>{CL.idx=j;if(j&&!ttsReady){ttsReady=true;try{if(S.screen!=='kahoot'&&S.screen!=='role'&&S.screen!=='free')render()}catch{}}return j});return CL.p}
+function clPlayer(){if(!CL.player){const p=new Audio();p.setAttribute('playsinline','');p.preload='auto';CL.player=p}return CL.player}
+function clUnlock(){if(CL.unlocked||CL.unlocking)return;try{const p=clPlayer();CL.unlocking=true;p.muted=true;p.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';const r=p.play();const fin=ok=>{CL.unlocking=false;p.muted=false;if(ok)CL.unlocked=true};if(r&&r.then)r.then(()=>fin(true),()=>fin(false));else fin(true)}catch{CL.unlocking=false}}
+['pointerdown','touchend','keydown'].forEach(e=>document.addEventListener(e,clUnlock,{capture:true,passive:true}));
+function stopAll(){try{CL.player&&!CL.unlocking&&CL.player.pause()}catch{}try{'speechSynthesis' in window&&speechSynthesis.cancel()}catch{}}
+async function speakOne(text,rate,tok){
+  if(!text)return;
+  try{const idx=CL.idx||await clIdx();const e=idx&&idx.clips[ckey(text)];
+    if(e){if(!CL.bufs[e[0]])CL.bufs[e[0]]=fetch(SND_DIR+idx.files[e[0]]).then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).catch(x=>{delete CL.bufs[e[0]];throw x});
+      const ab=(await CL.bufs[e[0]]).slice(e[1],e[1]+e[2]);if(tok!==CL.tok)return;
+      const url=URL.createObjectURL(new Blob([ab],{type:'audio/mpeg'}));const p=clPlayer();p.onended=p.onpause=p.onerror=null;p.muted=false;p.src=url;
+      const rt=rate&&rate<.8?.75:1;try{p.defaultPlaybackRate=rt;p.playbackRate=rt}catch{}
+      await p.play();if(tok!==CL.tok){p.pause();return}
+      return await new Promise(res=>{const d=()=>{p.onended=p.onpause=p.onerror=null;URL.revokeObjectURL(url);res()};p.onended=d;p.onpause=d;p.onerror=d})}
+  }catch{}
+  if(tok!==CL.tok)return;
+  return devSpeak(text,rate)}
+function devSpeak(text,rate){return new Promise(res=>{if(!('speechSynthesis' in window)||!trVoice)return res();try{const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.voice=trVoice;u.rate=rate||P.rate||.9;u.onend=u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,9000)}catch{res()}})}
+function speak(text,rate){CL.tok++;const tok=CL.tok;stopAll();return speakOne(text,rate,tok)}
+async function speakSeq(list,rate){CL.tok++;const tok=CL.tok;stopAll();for(const t of list){if(tok!==CL.tok)return;await speakOne(t,rate,tok);if(tok!==CL.tok)return;await new Promise(r=>setTimeout(r,200))}}
+const fbWord=(ok,timeout)=>timeout?'Süre doldu!':ok?'Doğru!':'Yanlış!';
+clIdx();
+
 /* ===================== text-to-speech ===================== */
 let trVoice=null,ttsReady=false;
-function loadVoices(){try{const vs=speechSynthesis.getVoices();trVoice=vs.find(v=>/^tr/i.test(v.lang))||null;ttsReady=!!trVoice}catch{}}
+function loadVoices(){try{const vs=speechSynthesis.getVoices();trVoice=vs.find(v=>/^tr/i.test(v.lang))||null;ttsReady=!!trVoice||!!CL.idx}catch{}}
 if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=()=>{loadVoices();if(S.screen==='home')render()}}
-function speak(text,rate){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';if(trVoice)u.voice=trVoice;u.rate=rate||P.rate||.9;speechSynthesis.speak(u)}catch{}}
 const spkBtn=(t,big)=>ttsReady?`<button class="speak ${big?'big':''}" data-act="say" data-t="${esc(t)}" aria-label="استمع">${ICON.spk}</button>`:'';
 
 /* ===================== progress store ===================== */
@@ -2011,7 +2041,7 @@ function kReveal(k){clearInterval(K.tm);const q=K.qs[K.i];const ms=Math.min(perf
   me.streak=ok?me.streak+1:0;const gainMe=kPts(ok,ms,q.T,me.streak);me.score+=gainMe;
   for(const b of K.botT){b.p.streak=b.ok?b.p.streak+1:0;b.p.score+=kPts(b.ok,Math.min(b.ms,q.T*1000),q.T,b.p.streak)}
   if(ok){K.right++;K.best=Math.max(K.best,me.streak)}else{K.missed.push(q.word||q.say||q.ans);if(q.word)srsBad(q.word)}
-  K.res={ok,timeout:k===null,pts:gainMe};K.phase='reveal';render();ok?sfx.ok():sfx.bad();if(ttsReady&&q.say)setTimeout(()=>speak(q.say),350)}
+  K.res={ok,timeout:k===null,pts:gainMe};K.phase='reveal';render();ok?sfx.ok():sfx.bad();if(ttsReady)setTimeout(()=>speakSeq([fbWord(ok,k===null),q.say].filter(Boolean)),350)}
 function kFinish(){K.phase='podium';const me=K.players[0];
   K.rank=[...K.players].sort((a,b)=>b.score-a.score).indexOf(me)+1;
   K.xp=Math.round(me.score/250)+K.right*2+(K.rank===1?15:K.rank===2?8:K.rank===3?4:0);gain(K.xp);
@@ -2059,7 +2089,7 @@ function vKahoot(){
 function answer(correct,word){const it=G.items[G.i];
   if(correct){G.ok++;G.combo++;G.best=Math.max(G.best,G.combo);const pts=10+(G.combo>=5?5:G.combo>=3?2:0);G.xp+=pts;G.state='ok';if(word&&(G.type==='review'||G.type==='learnquiz'))srsGood(word)}
   else{G.combo=0;G.state='bad';if(word&&(G.type==='review'))srsBad(word);G.missed.push(word||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''))||it.answer)}
-  render();if(correct&&it.say&&ttsReady&&!it.autoSay)speak(it.say)}
+  render();if(ttsReady){const say=it.say||(it.s&&it.s.tr)||(it.b&&it.b.p.join(''));speakSeq([fbWord(correct),say].filter(Boolean))}}
 function next(){G.i++;G.state='q';G.sel=[];G.pick=null;
   if(G.i>=G.items.length){if(G.ok===G.items.length)G.xp+=20;gain(G.xp);
     if(G.type==='learnquiz'){L.words.forEach(v=>{if(!P.srs[v.tr])P.srs[v.tr]={b:1,d:addDays(today(),1)}})}
